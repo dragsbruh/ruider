@@ -1,46 +1,8 @@
 import os
 import fitz
-import toml
 import string
 
-with open(os.path.join(os.path.dirname(__file__), "config.toml"), 'r') as f:
-    config = toml.load(f)
-
-try:
-    MANGA_HOME = config["manga_home"]
-except KeyError:
-    print(f"Manga: Please set manga_home in config.toml or refer to github for instructions")
-    exit(1)
-else:
-    if not (os.path.exists(MANGA_HOME) and os.path.isdir(MANGA_HOME)):
-        print(f"Manga: Invalid manga_home directory: {MANGA_HOME} - Directory not found")
-
-def extract_number(text: str):
-    extracted = ""
-    got_atleast_one = False
-    for char in text:
-        if char in string.digits + '.':
-            extracted += char
-            got_atleast_one = True
-        elif got_atleast_one: break
-    
-    
-    clean = ""
-    period_appeared = False
-    number_appeared = True
-    for char in extracted:
-        if char == '.':
-            if period_appeared:
-                break
-            if not number_appeared:
-                raise ValueError(f"Invalid number detected: {extracted}")
-            period_appeared = True
-        clean += char
-
-    if clean.endswith("."): clean = clean.removesuffix(".")
-    if "." in clean:
-        return float(clean)
-    return int(clean)
+MANGA_HOME: str = None
 
 class Chapter:
     num: int | float
@@ -136,6 +98,33 @@ class Manga:
 
     def get_chapter(self, num):
         return self.chapters[num]
+
+def extract_number(text: str):
+    extracted = ""
+    got_atleast_one = False
+    for char in text:
+        if char in string.digits + '.':
+            extracted += char
+            got_atleast_one = True
+        elif got_atleast_one: break
+    
+    
+    clean = ""
+    period_appeared = False
+    number_appeared = True
+    for char in extracted:
+        if char == '.':
+            if period_appeared:
+                break
+            if not number_appeared:
+                raise ValueError(f"Invalid number detected: {extracted}")
+            period_appeared = True
+        clean += char
+
+    if clean.endswith("."): clean = clean.removesuffix(".")
+    if "." in clean:
+        return float(clean)
+    return int(clean)
 
 def get_mangas():
     return [Manga(name) for name in os.listdir(MANGA_HOME) if os.path.isdir(Manga.get_path(name))]

@@ -2,33 +2,26 @@ import io
 import os
 import sys
 import time
-
 import toml
 import imblit
 import pygame
+import screeninfo
 
-from manga import MANGA_HOME, Chapter, Manga, extract_number
-
-
-from screeninfo import get_monitors
-m = get_monitors()[0]
-
-im = imblit.IMBlit((m.width, m.height), True, True)
-bookmark_filename = os.path.join(os.path.dirname(__file__), "bookmarks.toml")
+import manga
 
 class Var:
     manga_name: str
     manga_path: str
     page_index: int
     chapter_index: int
-    chapters: list[Chapter]
+    chapters: list[manga.Chapter]
     chapter_page_count: int
     chapter_path: str
     chapter_number: str
     display_page: bool
     temporary_messages: list[tuple[str, int]]
 
-    mg: Manga
+    manga: manga.Manga
 
     def setup():
         bookmarks = get_bookmarks()
@@ -44,33 +37,36 @@ class Var:
             print(f"Usage: python ruider.py <manga-name>")
             print(f"Please provide a manga name to read, or run with -l to list available mangas")
             exit(1)
-        elif not os.path.exists(os.path.join(MANGA_HOME, manga_name)):
+        elif not os.path.exists(os.path.join(manga.MANGA_HOME, manga_name)):
             print(f"Usage: python ruider.py <manga-name>")
             print(f"File not found: Does \'{manga_name}\' exist?")
             exit(1)
-        elif os.path.exists(os.path.join(MANGA_HOME, manga_name)) and len(sys.argv) > 1:
+        elif os.path.exists(os.path.join(manga.MANGA_HOME, manga_name)) and len(sys.argv) > 1:
             bookmarks["previously_reading"] = manga_name
             write_bookmarks(bookmarks)
 
-        Var.mg = Manga(manga_name)    
-        Var.mg.get_chapters()
+        Var.manga = manga.Manga(manga_name)    
+        Var.manga.get_chapters()
         Var.display_page = True
         Var.temporary_messages = []
 
+# Refresh basic info like manga name, chapter number etc
 def refresh_info():
-    Var.manga_name = Var.mg.name
-    Var.chapters = Var.mg.chapters
+    Var.manga_name = Var.manga.name
+    Var.chapters = Var.manga.chapters
     if Var.chapter_index < len(Var.chapters):
         Var.chapter_path = Var.chapters[Var.chapter_index].path
         Var.chapter_page_count = Var.chapters[Var.chapter_index].get_page_count()
-    Var.manga_path = Var.mg.path
-    Var.chapter_number = extract_number(os.path.splitext(os.path.basename(Var.chapter_path))[0])
+    Var.manga_path = Var.manga.path
+    Var.chapter_number = manga.extract_number(os.path.splitext(os.path.basename(Var.chapter_path))[0])
 
+# Display the new page to imblit
 def display_page():
     fp = io.BytesIO(Var.chapters[Var.chapter_index].get_page(Var.page_index))
-    im.display_image(pygame.image.load(fp))
+    context.display_image(pygame.image.load(fp))
     fp.close()
 
+# Refresh the page by clamping the page and chapter index
 def refresh_page(call_display: bool=True):
     if Var.page_index > Var.chapter_page_count - 1:
         Var.chapter_index += 1
@@ -91,9 +87,11 @@ def refresh_page(call_display: bool=True):
         display_page()
     refresh_info()
 
+# Temporarily show gui message
 def flash(message: str):
     Var.temporary_messages.append((message, time.time()))
 
+# Retrieve bookmarks from bookmark file
 def get_bookmarks():
     if os.path.exists(bookmark_filename):
         with open(bookmark_filename, 'r') as f:
@@ -102,10 +100,12 @@ def get_bookmarks():
         bookmarks = {}
     return bookmarks
 
+# Write to bookmarks file
 def write_bookmarks(bookmarks: dict[str, any]):
     with open(bookmark_filename, 'w') as f:
         toml.dump(bookmarks, f)
 
+# Bookmark current page
 def bookmark_page():
     bookmarks = get_bookmarks()
 
@@ -116,8 +116,9 @@ def bookmark_page():
     }
 
     write_bookmarks(bookmarks)
-    flash(f"Bookmarked current as {Var.manga_name.lower()}")
+    flash(f"Saved bookmark to ch{Var.chapter_number} pg{Var.page_index+1}")
 
+# Change page to bookmarked page
 def load_bookmark():
     bookmarks = get_bookmarks()
     
@@ -129,24 +130,39 @@ def load_bookmark():
             flash("Corrupt bookmark")
         else:
             refresh_info()
-            flash(f"Jumped to {Var.chapter_number}-{Var.page_index+1}")
+            flash(f"Jumped to ch{Var.chapter_number} pg{Var.page_index+1}")
     else:
         flash(f"Bookmark not found for {Var.manga_name.lower()}")
 
-@im.onkeypress
+
+# Constants
+bookmark_filename = os.path.join(os.path.dirname(__file__), "bookmarks.toml")
+config_file = os.path.join(os.path.dirname(__file__), "config.toml")
+monitor = screeninfo.get_monitors()[0]
+
+# Configuration
+with open(config_file, 'r') as f:
+    config = toml.load(f)
+
+manga.MANGA_HOME = config["manga_home"]
+
+# Main
+context = imblit.IMBlit((monitor.width, monitor.height), True, True)
+
+@context.onkeypress
 def keypress(key):
     refresh_info()
 
     # Configuration stuff
     if key == pygame.K_r:
         Var.display_page = not Var.display_page
-        if im.im_surf != None:
-            im.im_surf = None
+        if context.im_surf != None:
+            context.im_surf = None
         else:
             refresh_page(Var.display_page)
         return
     elif key == pygame.K_u:
-        im.show_gui = not im.show_gui
+        context.show_gui = not context.show_gui
         return
     
     # Page/Chapter
@@ -174,10 +190,10 @@ def keypress(key):
     refresh_info()    
     refresh_page(Var.display_page)
 
-@im.onwindowresize
+@context.onwindowresize
 def windowresized():
-    if im.im_surf:
-        im.center_image()
+    if context.im_surf:
+        context.center_image()
 
 Var.setup()
 Var.page_index = 0
@@ -185,13 +201,13 @@ Var.chapter_index = 0
 refresh_info()
 display_page()
 
-while not im.should_close:
-    im.add_gui_item(f"Reading {Var.manga_name.lower()}")
-    im.add_gui_item(f"Chapter {Var.chapter_number}")
-    im.add_gui_item(f"Page {Var.page_index+1}/{Var.chapter_page_count}")
-    curtime = time.time()
+while not context.should_close:
+    context.add_gui_item(f"Reading \"{Var.manga_name.title()}\"")
+    context.add_gui_item(f"Chapter {Var.chapter_number}")
+    context.add_gui_item(f"Page {Var.page_index+1}/{Var.chapter_page_count}")
+    current_time = time.time()
     for message, message_time in Var.temporary_messages:
-        im.add_gui_item(message)
-        if curtime - message_time > 3.5:
+        context.add_gui_item(message)
+        if current_time - message_time > 3.5:
             Var.temporary_messages.remove((message, message_time))
-    im.update(60)
+    context.update(30)
