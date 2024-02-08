@@ -29,7 +29,7 @@ class Var:
             manga_name = sys.argv[-1]
         else:
             try:
-                manga_name = bookmarks["previously_reading"]
+                manga_name = bookmarks["previously_reading"].title()
             except KeyError:
                 manga_name = None
         
@@ -45,10 +45,15 @@ class Var:
             bookmarks["previously_reading"] = manga_name
             write_bookmarks(bookmarks)
 
+        manga_name = manga_name.title()
+
         Var.manga = manga.Manga(manga_name)    
         Var.manga.get_chapters()
         Var.display_page = True
         Var.temporary_messages = []
+        Var.page_index = 0
+        Var.chapter_index = 0
+        
 
 # Refresh basic info like manga name, chapter number etc
 def refresh_info():
@@ -141,13 +146,23 @@ config_file = os.path.join(os.path.dirname(__file__), "config.toml")
 monitor = screeninfo.get_monitors()[0]
 
 # Configuration
+resolution = pygame.Vector2(monitor.width, monitor.height)
+resizable = False
+fullscreen = True
+
 with open(config_file, 'r') as f:
     config = toml.load(f)
 
 manga.MANGA_HOME = config["manga_home"]
+if "resolution" in config: resolution.x, resolution.y = config["resolution"]
+if "resizable" in config: resizable = config["resizable"]
+if "fullscreen" in config: fullscreen = config["fullscreen"]
 
 # Main
-context = imblit.IMBlit((monitor.width, monitor.height), True, True)
+Var.setup()
+refresh_info()
+
+context = imblit.IMBlit(resolution, resizable, fullscreen, title=f"Ruider - {Var.manga_name.title()}")
 
 @context.onkeypress
 def keypress(key):
@@ -156,8 +171,8 @@ def keypress(key):
     # Configuration stuff
     if key == pygame.K_r:
         Var.display_page = not Var.display_page
-        if context.im_surf != None:
-            context.im_surf = None
+        if context.image_surface != None:
+            context.image_surface = None
         else:
             refresh_page(Var.display_page)
         return
@@ -192,13 +207,9 @@ def keypress(key):
 
 @context.onwindowresize
 def windowresized():
-    if context.im_surf:
+    if context.image_surface:
         context.center_image()
 
-Var.setup()
-Var.page_index = 0
-Var.chapter_index = 0
-refresh_info()
 display_page()
 
 while not context.should_close:
