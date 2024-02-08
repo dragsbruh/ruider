@@ -30,6 +30,9 @@ class IMBlit:
     gui_shadow_color: tuple[int, int, int]
     gui_background_color: tuple[int, int, int]
 
+    resizable: bool
+    fullscreen: bool
+
     def __init__(self, resolution: pygame.Vector2, resizable: bool=True, fullscreen: bool=False, background_color: tuple[int, int, int]=(0, 0, 0), title: str="IMBlit window"):
         if fullscreen:
             self.display = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
@@ -61,6 +64,9 @@ class IMBlit:
         self.gui_shadow_offset = 3
         self.gui_shadow_color = (20, 40, 80)
         self.gui_background_color = (20, 20, 20)
+
+        self.resizable = resizable
+        self.fullscreen = fullscreen
 
     def update(self, tick: int | None=None):
         for e in pygame.event.get():
@@ -126,7 +132,7 @@ class IMBlit:
         if y_axis:
             self.image_position.y = (self.size.y - height)/2
     
-    def add_gui_item(self, message: str):
+    def add_gui_item(self, message: str):   
         pos = pygame.Vector2()
         surf = self.font.render(message, True, (255, 255, 255))
         pos.x = self.gui_padding
@@ -135,3 +141,19 @@ class IMBlit:
         self.messages.append((surf, pos))
         if surf.get_width() > self.gui_element_width:
             self.gui_element_width = surf.get_width()
+    
+    def toggle_fullscreen(self, resolution: pygame.Vector2 = None):
+        if resolution:
+            resolution = pygame.Vector2(resolution)
+        else:
+            resolution = self.size
+
+        if not self.fullscreen:
+            self.display = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
+            self.fullscreen = True
+        elif self.resizable:
+            self.display = pygame.display.set_mode(resolution, pygame.RESIZABLE)
+            self.fullscreen = False
+        else:
+            self.display = pygame.display.set_mode(resolution)
+            self.fullscreen = False

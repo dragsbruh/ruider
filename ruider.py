@@ -179,6 +179,10 @@ def keypress(key):
     elif key == pygame.K_u:
         context.show_gui = not context.show_gui
         return
+    elif key == pygame.K_F11:
+        context.toggle_fullscreen((monitor.width, monitor.height))
+        refresh_page(Var.display_page)
+        return
     
     # Page/Chapter
     if key == pygame.K_PLUS or key == pygame.K_EQUALS: # TODO: Fixme
