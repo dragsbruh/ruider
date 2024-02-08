@@ -23,6 +23,7 @@ class IMBlit:
     font: pygame.font.Font
     gui_last_y: int
     gui_max_width: int
+    show_gui: bool
 
     def __init__(self, resolution: pygame.Vector2, resizable: bool=True, fullscreen: bool=False, background_color: tuple[int, int, int]=(0, 0, 0), title: str="IMBlit window"):
         if fullscreen:
@@ -45,7 +46,8 @@ class IMBlit:
         self.gui_max_width = 0
         self.gui_msgs = []
         self.gui_pad = 10
-        self.font = pygame.font.Font(os.path.join(os.path.dirname(__file__), "assets", "font.ttf"), 12)
+        self.show_gui = True
+        self.font = pygame.font.Font(os.path.join(os.path.dirname(__file__), "assets", "font.ttf"), 16)
 
     def update(self, tick: int | None=None):
         for e in pygame.event.get():
@@ -62,15 +64,16 @@ class IMBlit:
         if self.im_surf != None:
             self.display.blit(self.im_surf, self.im_pos)
         
-        bgrect = pygame.rect.Rect(self.gui_pad/2, self.gui_pad/2, self.gui_max_width+self.gui_pad, self.gui_last_y)
-        bgrect.y += 2
-        bgrect.x += 2
-        pygame.draw.rect(self.display, (80, 20, 20), bgrect, border_radius=4)
-        bgrect.y -= 2
-        bgrect.x -= 2
-        pygame.draw.rect(self.display, (20, 20, 20), bgrect, border_radius=4)
-        for surf, pos in self.gui_msgs:
-            self.display.blit(surf, pos)
+        if self.show_gui:
+            bgrect = pygame.rect.Rect(self.gui_pad/2, self.gui_pad/2, self.gui_max_width+self.gui_pad, self.gui_last_y)
+            bgrect.y += 2
+            bgrect.x += 2
+            pygame.draw.rect(self.display, (80, 20, 20), bgrect, border_radius=4)
+            bgrect.y -= 2
+            bgrect.x -= 2
+            pygame.draw.rect(self.display, (20, 20, 20), bgrect, border_radius=4)
+            for surf, pos in self.gui_msgs:
+                self.display.blit(surf, pos)
         pygame.display.update()
         self.gui_last_y = 0
         self.gui_msgs = []

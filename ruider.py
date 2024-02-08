@@ -145,6 +145,9 @@ def keypress(key):
         else:
             refresh_page(Var.display_page)
         return
+    elif key == pygame.K_u:
+        im.show_gui = not im.show_gui
+        return
     
     # Page/Chapter
     if key == pygame.K_PLUS or key == pygame.K_EQUALS: # TODO: Fixme
