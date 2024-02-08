@@ -45,7 +45,7 @@ class IMBlit:
         self.gui_max_width = 0
         self.gui_msgs = []
         self.gui_pad = 10
-        self.font = pygame.font.Font(os.path.join(os.path.dirname(__name__), "assets", "font.ttf"), 12)
+        self.font = pygame.font.Font(os.path.join(os.path.dirname(__file__), "assets", "font.ttf"), 12)
 
     def update(self, tick: int | None=None):
         for e in pygame.event.get():
