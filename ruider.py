@@ -9,7 +9,11 @@ import pygame
 
 from manga import MANGA_HOME, Chapter, Manga, extract_number
 
-im = imblit.IMBlit((1920, 1080), True, True)
+
+from screeninfo import get_monitors
+m = get_monitors()[0]
+
+im = imblit.IMBlit((m.width, m.height), True, True)
 bookmark_filename = os.path.join(os.path.dirname(__file__), "bookmarks.toml")
 
 class Var:

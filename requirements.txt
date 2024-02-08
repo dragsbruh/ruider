@@ -1,0 +1,6 @@
+pillow==10.2.0
+pygame==2.5.2
+PyMuPDF==1.23.21
+PyMuPDFb==1.23.9
+screeninfo==0.8.1
+toml==0.10.2

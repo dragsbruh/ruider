@@ -52,4 +52,7 @@ A very humble manga reader that focuses on reading pre-downloaded mangas with a 
 
 - Extensive configuration (window size, resizability, fullscreen etc) will be added later. Right now the app launches default fullscreen with detected monitor resolution.
 - The app might be buggy or might crash. Please report issues or enhancement requests in `issues` tab of the repo.
-- This is personal project dont expect the most professional looking app. It just works.    
+- This is personal project dont expect the most professional looking app. It just works.
+- I recommend you use hakuneko for downloading mangas.
+
+![demo showing ruider](assets/demo_1.png)
