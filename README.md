@@ -48,11 +48,28 @@ A very humble manga reader that focuses on reading pre-downloaded mangas with a 
   You can jump to the bookmark with `k` key.
   There can only be only one bookmark per manga.
 
+### Naming convention
+
+- "Platinum end - 01.pdf" -- works, loads as chapter 1
+- "Platinum end - 01.07.pdf" -- works, loads as chapter 1.07 (in manga terms this is chapters 1-7 or volume 1)
+- "1.pdf" -- works, loads as chapter 1
+- "Otter no. 11 - 1.pdf" -- doesnt work, it must only contain chapter number. otherwise 11 is taken as chapter number and it breaks. (doesnt show any error).
+
+### Extra features
+
+- It remembers your last opened manga, so you can just type `python ruider.py` and it will open the manga you opened in previous session.
+
 ### Notes
 
 - Extensive configuration (window size, resizability, fullscreen etc) will be added later. Right now the app launches default fullscreen with detected monitor resolution.
 - The app might be buggy or might crash. Please report issues or enhancement requests in `issues` tab of the repo.
 - This is personal project dont expect the most professional looking app. It just works.
 - I recommend you use hakuneko for downloading mangas.
+- Only pdfs are supported
 
-![demo showing ruider](assets/demo_1.png)
+## Pictures
+
+1. Demo ![demo showing ruider - main](assets/demo_1.png)
+2. Jumping to bookmark ![demo showing ruider - jump to bookmark](assets/demo_2.png)
+3. Setting a bookmark ![demo showing ruider - set a bookmark](assets/demo_3.png)
+4. How bookmarks are stored ![ruider info - internal bookmark representation](assets/demo_4.png)
