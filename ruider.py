@@ -249,4 +249,4 @@ while not context.should_close:
         context.add_gui_item(message)
         if current_time - message_time > 3.5:
             Var.temporary_messages.remove((message, message_time))
-    context.update(30)
+    context.update(60)

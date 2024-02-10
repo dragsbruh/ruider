@@ -27,8 +27,9 @@ class IMBlit:
     gui_element_width: int
     show_gui: bool
     gui_shadow_offset: int
-    gui_shadow_color: tuple[int, int, int]
-    gui_background_color: tuple[int, int, int]
+    gui_shadow_color: list[int, int, int]
+    gui_background_color: list[int, int, int]
+    gui_background_state: int
 
     resizable: bool
     fullscreen: bool
@@ -62,8 +63,9 @@ class IMBlit:
         self.gui_element_width = 0
         self.gui_padding = 10
         self.gui_shadow_offset = 3
-        self.gui_shadow_color = (20, 40, 80)
-        self.gui_background_color = (20, 20, 20)
+        self.gui_shadow_color = [20, 40, 80]
+        self.gui_background_color = [20, 20, 20]
+        self.gui_background_state = 0
 
         self.resizable = resizable
         self.fullscreen = fullscreen
@@ -84,6 +86,7 @@ class IMBlit:
             self.display.blit(self.image_surface, self.image_position)
         
         if self.show_gui:
+            self.apply_gui_special_effects()
             background_rect = pygame.rect.Rect((self.gui_padding/2) + self.gui_shadow_offset, (self.gui_padding/2) + self.gui_shadow_offset, self.gui_element_width+self.gui_padding, self.gui_element_y)
             pygame.draw.rect(self.display, self.gui_shadow_color, background_rect, border_radius=4)
             background_rect.x -= self.gui_shadow_offset
@@ -157,3 +160,35 @@ class IMBlit:
         else:
             self.display = pygame.display.set_mode(resolution)
             self.fullscreen = False
+    
+    def apply_gui_special_effects(self):
+        if self.gui_background_state == 0:
+            self.gui_shadow_color[0] += 1
+            if self.gui_shadow_color[0] >= 255:
+                self.gui_background_state = 1
+                self.gui_shadow_color[0] = 255
+        elif self.gui_background_state == 1:
+            self.gui_shadow_color[1] += 1
+            if self.gui_shadow_color[1] >= 255:
+                self.gui_background_state = 2
+                self.gui_shadow_color[1] = 255
+        elif self.gui_background_state == 2:
+            self.gui_shadow_color[2] += 1
+            if self.gui_shadow_color[2] >= 255:
+                self.gui_background_state = 3
+                self.gui_shadow_color[2] = 255
+        elif self.gui_background_state == 3:
+            self.gui_shadow_color[0] -= 1
+            if self.gui_shadow_color[0] <= 0:
+                self.gui_background_state = 4
+                self.gui_shadow_color[0] = 0
+        elif self.gui_background_state == 4:
+            self.gui_shadow_color[1] -= 1
+            if self.gui_shadow_color[1] <= 0:
+                self.gui_background_state = 5
+                self.gui_shadow_color[1] = 0
+        elif self.gui_background_state == 5:
+            self.gui_shadow_color[2] -= 1
+            if self.gui_shadow_color[2] <= 0:
+                self.gui_background_state = 0
+                self.gui_shadow_color[2] = 0
