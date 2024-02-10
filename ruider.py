@@ -7,6 +7,8 @@ import imblit
 import pygame
 import screeninfo
 
+from tkinter import filedialog
+
 import manga
 
 class Var:
@@ -182,6 +184,18 @@ def keypress(key):
     elif key == pygame.K_F11:
         context.toggle_fullscreen((monitor.width, monitor.height))
         refresh_page(Var.display_page)
+        return
+
+    # Misc features
+    if key == pygame.K_s:
+        f = filedialog.asksaveasfile("wb", filetypes=[('PNG Image', '.png')], defaultextension='.png')
+        if f == None:
+            flash("Save cancelled")
+            return
+        page_bytes = Var.chapters[Var.chapter_index].get_page(Var.page_index, format="PNG")
+        f.write(page_bytes)
+        f.close()
+        flash(f"Saved to {f.name}")
         return
     
     # Page/Chapter

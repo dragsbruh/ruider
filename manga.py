@@ -14,7 +14,7 @@ class Chapter:
         self.path = path
         self.parent_name = os.path.basename(os.path.dirname(path))
 
-    def get_pages(self) -> bytes:
+    def get_pages(self) -> bytes: # FIXME: Potential bug, I lack knowledge about generators
         doc = fitz.open(self.path)
 
         for page in doc:
@@ -37,11 +37,11 @@ class Chapter:
         doc.close()
         return count
     
-    def get_page(self, number: int):
+    def get_page(self, number: int, format: str="WEBP"):
         doc = fitz.open(self.path)
         if number >= len(doc):
             raise ValueError(f"Page {number} not found")
-        page = doc[number].get_pixmap().pil_tobytes(format="WEBP", optimize=True, dpi=(200, 200))
+        page = doc[number].get_pixmap().pil_tobytes(format=format, optimize=True, dpi=(200, 200))
         doc.close()
         return page
 
