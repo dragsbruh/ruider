@@ -9,4 +9,4 @@
 - [ ] Fancy background
 - [ ] Better UI (update imblit?)
 - [x] Show last chapter number
-- [ ] Add related functions and proper cli handling
+- [x] Add manga related functions as cli and proper cli handling

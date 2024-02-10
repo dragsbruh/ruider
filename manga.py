@@ -98,6 +98,9 @@ class Manga:
 
     def get_chapter(self, num):
         return self.chapters[num]
+    
+    def get_chapter_count(self):
+        return len([item for item in os.listdir(self.path) if item.endswith(".pdf")])
 
 def extract_number(text: str):
     extracted = ""

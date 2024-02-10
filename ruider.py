@@ -160,6 +160,16 @@ if "resolution" in config: resolution.x, resolution.y = config["resolution"]
 if "resizable" in config: resizable = config["resizable"]
 if "fullscreen" in config: fullscreen = config["fullscreen"]
 
+# CLI handling
+list_mangas = "-l" in sys.argv or "--list" in sys.argv
+
+if list_mangas:
+    mangas = manga.get_mangas()
+    # TODO: Smoothen out
+    for n, mg in enumerate(mangas):
+        print(f"[{n+1}]: {mg.name} - {mg.get_chapter_count()} chapter(s)")
+    exit(0)
+
 # Main
 Var.setup()
 refresh_info()
