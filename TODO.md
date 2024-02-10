@@ -8,5 +8,6 @@
 - [ ] Hide console on startup if run from shortcut
 - [ ] Fancy background
 - [ ] Better UI (update imblit?)
+- [ ] Add error handling
 - [x] Show last chapter number
 - [x] Add manga related functions as cli and proper cli handling
