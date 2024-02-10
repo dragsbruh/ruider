@@ -8,4 +8,4 @@
 - [ ] Hide console on startup
 - [ ] Fancy background
 - [ ] Better UI (update imblit?)
-- [ ] Show last chapter number
+- [x] Show last chapter number

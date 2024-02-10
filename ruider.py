@@ -232,7 +232,7 @@ display_page()
 
 while not context.should_close:
     context.add_gui_item(f"Reading \"{Var.manga_name.title()}\"")
-    context.add_gui_item(f"Chapter {Var.chapter_number}")
+    context.add_gui_item(f"Chapter {Var.chapter_number}/{Var.chapters[-1].num}")
     context.add_gui_item(f"Page {Var.page_index+1}/{Var.chapter_page_count}")
     current_time = time.time()
     for message, message_time in Var.temporary_messages:
