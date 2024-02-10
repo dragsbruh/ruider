@@ -5,3 +5,7 @@
 - [ ] Better UI
 - [ ] Even more customization
 - [ ] Speed (migrate from fitz pymupdf to something else?)
+- [ ] Hide console on startup
+- [ ] Fancy background
+- [ ] Better UI (update imblit?)
+- [ ] Show last chapter number
