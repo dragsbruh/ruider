@@ -83,11 +83,11 @@ def refresh_page(call_display: bool=True):
         Var.page_index = Var.chapters[Var.chapter_index].get_page_count() - 1
      
     if Var.chapter_index >= len(Var.chapters):
-        flash("This is the last chapter")
+        flash("You are at the last chapter")
         Var.chapter_index = len(Var.chapters) - 1
         Var.page_index = Var.chapter_page_count - 1
     elif Var.chapter_index < 0:
-        flash("You are at first chapter")
+        flash("You are at the first chapter")
         Var.chapter_index = 0
         Var.page_index = 0
     if call_display:
@@ -150,7 +150,7 @@ monitor = screeninfo.get_monitors()[0]
 # Configuration
 resolution = pygame.Vector2(monitor.width, monitor.height)
 resizable = False
-fullscreen = True
+fullscreen = False
 
 with open(config_file, 'r') as f:
     config = toml.load(f)
