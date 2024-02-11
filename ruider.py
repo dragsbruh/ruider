@@ -228,6 +228,7 @@ def windowresized():
         Var.context.center_image()
 
 def main():
+    load_config()
     Var.setup()
     refresh_info()
     Var.context = imblit.IMBlit(Config.resolution, Config.resizable, Config.fullscreen, title=f"Ruider - {Var.manga_name.title()}")
