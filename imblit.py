@@ -95,6 +95,7 @@ class IMBlit:
             for surface, position in self.messages:
                 self.display.blit(surface, position)
         pygame.display.update()
+        self.gui_element_width = 0
         self.gui_element_y = 0
         self.messages = []
 
