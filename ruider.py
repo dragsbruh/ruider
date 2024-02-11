@@ -219,6 +219,8 @@ def keypress(key):
         bookmark_page()
     elif key == pygame.K_j:
         load_bookmark()
+    else:
+        return
     
     refresh_info()    
     refresh_page(Var.display_page)
