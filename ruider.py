@@ -11,6 +11,11 @@ from tkinter import filedialog
 
 import manga
 
+# Constants
+bookmark_filename = os.path.join(os.path.dirname(__file__), "bookmarks.toml")
+config_file = os.path.join(os.path.dirname(__file__), "config.toml")
+monitor = screeninfo.get_monitors()[0]
+
 class Var:
     manga_name: str
     manga_path: str
@@ -24,6 +29,7 @@ class Var:
     temporary_messages: list[tuple[str, int]]
 
     manga: manga.Manga
+    context: imblit.IMBlit
 
     def setup():
         bookmarks = get_bookmarks()
@@ -57,6 +63,12 @@ class Var:
         Var.chapter_index = 0
         
 
+class Config:
+    fullscreen: bool
+    resolution: pygame.Vector2 | tuple[int, int]
+    resizable: bool
+
+
 # Refresh basic info like manga name, chapter number etc
 def refresh_info():
     Var.manga_name = Var.manga.name
@@ -70,7 +82,7 @@ def refresh_info():
 # Display the new page to imblit
 def display_page():
     fp = io.BytesIO(Var.chapters[Var.chapter_index].get_page(Var.page_index))
-    context.display_image(pygame.image.load(fp))
+    Var.context.display_image(pygame.image.load(fp))
     fp.close()
 
 # Refresh the page by clamping the page and chapter index
@@ -141,58 +153,36 @@ def load_bookmark():
     else:
         flash(f"Bookmark not found for {Var.manga_name.lower()}")
 
-
-# Constants
-bookmark_filename = os.path.join(os.path.dirname(__file__), "bookmarks.toml")
-config_file = os.path.join(os.path.dirname(__file__), "config.toml")
-monitor = screeninfo.get_monitors()[0]
-
 # Configuration
-resolution = pygame.Vector2(monitor.width, monitor.height)
-resizable = False
-fullscreen = False
+def load_config():
+    Config.resolution = pygame.Vector2(monitor.width, monitor.height)
+    Config.resizable = False
+    Config.fullscreen = False
 
-with open(config_file, 'r') as f:
-    config = toml.load(f)
+    with open(config_file, 'r') as f:
+        config = toml.load(f)
 
-manga.MANGA_HOME = config["manga_home"]
-if "resolution" in config: resolution.x, resolution.y = config["resolution"]
-if "resizable" in config: resizable = config["resizable"]
-if "fullscreen" in config: fullscreen = config["fullscreen"]
+    manga.MANGA_HOME = config["manga_home"]
+    if "resolution" in config: Config.resolution.x, Config.resolution.y = config["resolution"]
+    if "resizable" in config: Config.resizable = config["resizable"]
+    if "fullscreen" in config: Config.fullscreen = config["fullscreen"]
 
-# CLI handling
-list_mangas = "-l" in sys.argv or "--list" in sys.argv
-
-if list_mangas:
-    mangas = manga.get_mangas()
-    # TODO: Smoothen out
-    for n, mg in enumerate(mangas):
-        print(f"[{n+1}]: {mg.name} - {mg.get_chapter_count()} chapter(s)")
-    exit(0)
-
-# Main
-Var.setup()
-refresh_info()
-
-context = imblit.IMBlit(resolution, resizable, fullscreen, title=f"Ruider - {Var.manga_name.title()}")
-
-@context.onkeypress
 def keypress(key):
     refresh_info()
 
     # Configuration stuff
     if key == pygame.K_r:
         Var.display_page = not Var.display_page
-        if context.image_surface != None:
-            context.image_surface = None
+        if Var.context.image_surface != None:
+            Var.context.image_surface = None
         else:
             refresh_page(Var.display_page)
         return
     elif key == pygame.K_u:
-        context.show_gui = not context.show_gui
+        Var.context.show_gui = not Var.context.show_gui
         return
     elif key == pygame.K_F11:
-        context.toggle_fullscreen((monitor.width, monitor.height))
+        Var.context.toggle_fullscreen((monitor.width, monitor.height))
         refresh_page(Var.display_page)
         return
 
@@ -233,20 +223,38 @@ def keypress(key):
     refresh_info()    
     refresh_page(Var.display_page)
 
-@context.onwindowresize
 def windowresized():
-    if context.image_surface:
-        context.center_image()
+    if Var.context.image_surface:
+        Var.context.center_image()
 
-display_page()
+def main():
+    Var.setup()
+    refresh_info()
+    Var.context = imblit.IMBlit(Config.resolution, Config.resizable, Config.fullscreen, title=f"Ruider - {Var.manga_name.title()}")
+    display_page()
 
-while not context.should_close:
-    context.add_gui_item(f"Reading \"{Var.manga_name.title()}\"")
-    context.add_gui_item(f"Chapter {Var.chapter_number}/{Var.chapters[-1].num}")
-    context.add_gui_item(f"Page {Var.page_index+1}/{Var.chapter_page_count}")
-    current_time = time.time()
-    for message, message_time in Var.temporary_messages:
-        context.add_gui_item(message)
-        if current_time - message_time > 3.5:
-            Var.temporary_messages.remove((message, message_time))
-    context.update(60)
+    Var.context.onwindowresize(windowresized)
+    Var.context.onkeypress(keypress)
+    
+    while not Var.context.should_close:
+        Var.context.add_gui_item(f"Reading \"{Var.manga_name.title()}\"")
+        Var.context.add_gui_item(f"Chapter {Var.chapter_number}/{Var.chapters[-1].num}")
+        Var.context.add_gui_item(f"Page {Var.page_index+1}/{Var.chapter_page_count}")
+        current_time = time.time()
+        for message, message_time in Var.temporary_messages:
+            Var.context.add_gui_item(message)
+            if current_time - message_time > 3.5:
+                Var.temporary_messages.remove((message, message_time))
+        Var.context.update(60)
+
+if __name__ == "__main__":
+    list_mangas = "-l" in sys.argv or "--list" in sys.argv
+
+    if list_mangas:
+        load_config()
+        mangas = manga.get_mangas()
+        # TODO: Smoothen out
+        for n, mg in enumerate(mangas):
+            print(f"[{n+1}]: {mg.name} - {mg.get_chapter_count()} chapter(s)")
+        exit(0)
+    main()
