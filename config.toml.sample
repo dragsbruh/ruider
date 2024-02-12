@@ -1,1 +1,2 @@
-manga_home = "/path/to/manga/dir" # Escape as needed
+manga_homes = ["/path/to/manga/dir", "path/to/other/manga/dir"]
+manga_homes = ["/path/to/manga/dir"] # If you have only one manga dir
