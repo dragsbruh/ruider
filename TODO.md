@@ -9,5 +9,6 @@
 - [ ] Better UI (update imblit?)
 - [ ] Add error handling
 - [ ] Add launcher
+- [ ] Add user history tracking (suspicious, so will make it optional)
 - [x] Show last chapter number
 - [x] Add manga related functions as cli and proper cli handling
