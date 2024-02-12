@@ -2,7 +2,7 @@ import os
 import fitz
 import string
 
-MANGA_HOME: str = None
+MANGA_HOMES: list[str] = None
 
 class Chapter:
     num: int | float
@@ -14,7 +14,7 @@ class Chapter:
         self.path = path
         self.parent_name = os.path.basename(os.path.dirname(path))
 
-    def get_pages(self) -> bytes: # FIXME: Potential bug, I lack knowledge about generators
+    def get_pages(self): # FIXME: Potential bug, I lack knowledge about generators
         doc = fitz.open(self.path)
 
         for page in doc:
@@ -38,6 +38,12 @@ class Chapter:
         return count
     
     def get_page(self, number: int, format: str="WEBP"):
+        # FIXME: I assume fitz provides bad image quality
+        if os.path.splitext(self.path)[1] in ['.png', '.jpg', '.webp', '.jpeg']:
+            f = open(self.path, 'rb')
+            bytes = f.read()
+            f.close()
+            return bytes
         doc = fitz.open(self.path)
         if number >= len(doc):
             raise ValueError(f"Page {number} not found")
@@ -83,7 +89,11 @@ class Manga:
         return self.chapters
     
     def get_path(manga_name):
-        return os.path.join(MANGA_HOME, manga_name)
+        for home in MANGA_HOMES:
+            path = os.path.join(home, manga_name)
+            if os.path.exists(path):
+                return path
+        return os.path.join(MANGA_HOMES[0], manga_name)
 
     def to_obj(self):
         obj = {
@@ -130,4 +140,7 @@ def extract_number(text: str):
     return int(clean)
 
 def get_mangas():
-    return [Manga(name) for name in os.listdir(MANGA_HOME) if os.path.isdir(Manga.get_path(name))]
+    mangas = []
+    for home in MANGA_HOMES:
+        mangas.extend([Manga(name) for name in os.listdir(home) if os.path.isdir(Manga.get_path(name))])
+    return mangas

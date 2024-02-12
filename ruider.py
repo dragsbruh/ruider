@@ -41,17 +41,25 @@ class Var:
             except KeyError:
                 manga_name = None
         
-        if manga_name == None:
+        found = False
+        for home in manga.MANGA_HOMES:
+            if manga_name == None:
+                continue
+            elif not os.path.exists(os.path.join(home, manga_name)):
+                continue
+            elif os.path.exists(os.path.join(home, manga_name)) and len(sys.argv) > 1:
+                bookmarks["previously_reading"] = manga_name
+                write_bookmarks(bookmarks)
+                found = True
+                break
+            else:
+                found = True
+                break
+        
+        if not found:
             print(f"Usage: python ruider.py <manga-name>")
-            print(f"Please provide a manga name to read, or run with -l to list available mangas")
+            print(f"Please provide a valid manga name to read, or run with -l to list available mangas")
             exit(1)
-        elif not os.path.exists(os.path.join(manga.MANGA_HOME, manga_name)):
-            print(f"Usage: python ruider.py <manga-name>")
-            print(f"File not found: Does \'{manga_name}\' exist?")
-            exit(1)
-        elif os.path.exists(os.path.join(manga.MANGA_HOME, manga_name)) and len(sys.argv) > 1:
-            bookmarks["previously_reading"] = manga_name
-            write_bookmarks(bookmarks)
 
         manga_name = manga_name.title()
 
@@ -82,7 +90,9 @@ def refresh_info():
 # Display the new page to imblit
 def display_page():
     fp = io.BytesIO(Var.chapters[Var.chapter_index].get_page(Var.page_index))
-    Var.context.display_image(pygame.image.load(fp))
+    surf = pygame.image.load(fp)
+    # pygame.image.save(surf, "test.png")
+    Var.context.display_image(surf)
     fp.close()
 
 # Refresh the page by clamping the page and chapter index
@@ -162,7 +172,7 @@ def load_config():
     with open(config_file, 'r') as f:
         config = toml.load(f)
 
-    manga.MANGA_HOME = config["manga_home"]
+    manga.MANGA_HOMES = config["manga_homes"]
     if "resolution" in config: Config.resolution.x, Config.resolution.y = config["resolution"]
     if "resizable" in config: Config.resizable = config["resizable"]
     if "fullscreen" in config: Config.fullscreen = config["fullscreen"]
@@ -241,8 +251,11 @@ def main():
     
     while not Var.context.should_close:
         Var.context.add_gui_item(f"Reading \"{Var.manga_name.title()}\"")
-        Var.context.add_gui_item(f"Chapter {Var.chapter_number}/{Var.chapters[-1].num}")
-        Var.context.add_gui_item(f"Page {Var.page_index+1}/{Var.chapter_page_count}")
+        if Var.chapter_page_count != 1:
+            Var.context.add_gui_item(f"Chapter {Var.chapter_number}/{Var.chapters[-1].num}")
+            Var.context.add_gui_item(f"Page {Var.page_index+1}/{Var.chapter_page_count}")
+        else:
+            Var.context.add_gui_item(f"Page {Var.chapter_number}/{len(Var.chapters)}")
         current_time = time.time()
         for message, message_time in Var.temporary_messages:
             Var.context.add_gui_item(message)
