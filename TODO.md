@@ -8,5 +8,6 @@
 - [ ] Fancy background
 - [ ] Better UI (update imblit?)
 - [ ] Add error handling
+- [ ] Add launcher
 - [x] Show last chapter number
 - [x] Add manga related functions as cli and proper cli handling
