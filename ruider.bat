@@ -7,6 +7,6 @@ if "%*" == "" (
     goto end
 )
 
-python "%SCRIPT%" %*
+python "%SCRIPT%" "%*"
 
 :end
