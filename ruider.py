@@ -1,4 +1,5 @@
 import io
+import math
 import os
 import sys
 import time
@@ -14,6 +15,7 @@ import manga
 # Constants
 bookmark_filename = os.path.join(os.path.dirname(__file__), "bookmarks.toml")
 config_file = os.path.join(os.path.dirname(__file__), "config.toml")
+history_file = os.path.join(os.path.dirname(__file__), "history.toml")
 monitor = screeninfo.get_monitors()[0]
 
 class Var:
@@ -32,7 +34,7 @@ class Var:
     context: imblit.IMBlit
 
     def setup():
-        bookmarks = get_bookmarks()
+        bookmarks = get_data(bookmark_filename)
         if len(sys.argv) > 1:
             manga_name = sys.argv[-1]
         else:
@@ -49,7 +51,7 @@ class Var:
                 continue
             elif os.path.exists(os.path.join(home, manga_name)) and len(sys.argv) > 1:
                 bookmarks["previously_reading"] = manga_name
-                write_bookmarks(bookmarks)
+                write_data(bookmarks, bookmark_filename)
                 found = True
                 break
             else:
@@ -59,6 +61,7 @@ class Var:
         if not found:
             print(f"Usage: python ruider.py <manga-name>")
             print(f"Please provide a valid manga name to read, or run with -l to list available mangas")
+            print("Either manga home does not exist or your manga wasnt found")
             exit(1)
 
         manga_name = manga_name.title()
@@ -76,6 +79,28 @@ class Config:
     resolution: pygame.Vector2 | tuple[int, int]
     resizable: bool
 
+
+class Svar:
+    time_spent: float = 0
+    last_checked_time: float = time.time()
+
+
+def dump_history():
+    history = get_data(history_file)
+    if "overall" in history:
+        overall = history["overall"]
+    else:
+        overall = 0
+    if Var.manga.name.lower() in history:
+        already_spent = history[Var.manga.name.lower()]
+    else:
+        already_spent = 0
+    if not "mangas" in history:
+        history["mangas"] = {}
+    history["mangas"][Var.manga.name.lower()] = already_spent + Svar.time_spent
+    history["overall"] = overall + Svar.time_spent
+    write_data(history, history_file)
+    Svar.time_spent = 0
 
 # Refresh basic info like manga name, chapter number etc
 def refresh_info():
@@ -121,22 +146,22 @@ def flash(message: str):
     Var.temporary_messages.append((message, time.time()))
 
 # Retrieve bookmarks from bookmark file
-def get_bookmarks():
-    if os.path.exists(bookmark_filename):
-        with open(bookmark_filename, 'r') as f:
-            bookmarks = toml.load(f)
+def get_data(file: str):
+    if os.path.exists(file):
+        with open(file, 'r') as f:
+            data = toml.load(f)
     else:
-        bookmarks = {}
-    return bookmarks
+        data = {}
+    return data
 
 # Write to bookmarks file
-def write_bookmarks(bookmarks: dict[str, any]):
-    with open(bookmark_filename, 'w') as f:
-        toml.dump(bookmarks, f)
+def write_data(data: dict[str, any], file: str):
+    with open(file, 'w') as f:
+        toml.dump(data, f)
 
 # Bookmark current page
 def bookmark_page():
-    bookmarks = get_bookmarks()
+    bookmarks = get_data(bookmark_filename)
 
     bookmarks[Var.manga_name.lower()] = {
         "chapter_index": Var.chapter_index,
@@ -144,12 +169,12 @@ def bookmark_page():
         "chapter_number_readable": Var.chapter_number # Only in case user wants to manually modify bookmark, not for internal use
     }
 
-    write_bookmarks(bookmarks)
+    write_data(bookmarks, bookmark_filename)
     flash(f"Saved bookmark to ch{Var.chapter_number} pg{Var.page_index+1}")
 
 # Change page to bookmarked page
 def load_bookmark():
-    bookmarks = get_bookmarks()
+    bookmarks = get_data(bookmark_filename)
     
     if Var.manga_name.lower() in bookmarks:
         try: 
@@ -248,6 +273,8 @@ def main():
 
     Var.context.onwindowresize(windowresized)
     Var.context.onkeypress(keypress)
+
+    fps = 60
     
     while not Var.context.should_close:
         Var.context.add_gui_item(f"Reading \"{Var.manga_name.title()}\"")
@@ -261,10 +288,20 @@ def main():
             Var.context.add_gui_item(message)
             if current_time - message_time > 3.5:
                 Var.temporary_messages.remove((message, message_time))
-        Var.context.update(60)
+        
+
+        if Var.context.framecount % (fps * 7) == 0: # Update history every 7 seconds
+            # TODO: Find a way to see if user is actively reading or smth
+            now = time.time()
+            Svar.time_spent += now - Svar.last_checked_time
+            Svar.last_checked_time = now
+            dump_history()
+
+        Var.context.update(fps)
 
 if __name__ == "__main__":
     list_mangas = "-l" in sys.argv or "--list" in sys.argv
+    show_stats = "-s" in sys.argv or "--stats" in sys.argv
 
     if list_mangas:
         load_config()
@@ -272,5 +309,16 @@ if __name__ == "__main__":
         # TODO: Smoothen out
         for n, mg in enumerate(mangas):
             print(f"[{n+1}]: {mg.name} - {mg.get_chapter_count()} chapter(s)")
+        exit(0)
+    elif show_stats:
+        history = get_data(history_file)
+        overall = history["overall"] if "overall" in history else 0
+        print(f"You spent exactly {math.floor(overall)} seconds using ruider to read manga.")
+        print(f"\tThat is, {math.floor(overall/60)} minutes")
+        print(f"\tOr {math.ceil(overall/3600)} hours")
+        print()
+        mangas = history["mangas"] if "mangas" in history else []
+        for mg in mangas.keys():
+            print(f"You spent {math.floor(mangas[mg])} seconds ({math.floor(overall/3600)} hours {math.floor(overall)%60} minutes) reading {mg}")
         exit(0)
     main()

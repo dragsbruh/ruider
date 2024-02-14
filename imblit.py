@@ -34,6 +34,8 @@ class IMBlit:
     resizable: bool
     fullscreen: bool
 
+    framecount: int
+
     def __init__(self, resolution: pygame.Vector2, resizable: bool=True, fullscreen: bool=False, background_color: tuple[int, int, int]=(0, 0, 0), title: str="IMBlit window"):
         if fullscreen:
             self.display = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
@@ -70,6 +72,8 @@ class IMBlit:
         self.resizable = resizable
         self.fullscreen = fullscreen
 
+        self.framecount = 0
+
     def update(self, tick: int | None=None):
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -101,6 +105,8 @@ class IMBlit:
 
         if tick:
             self.clock.tick(tick)
+        
+        self.framecount += 1
     
     def display_image(self, surface: pygame.Surface, pos: pygame.Vector2=pygame.Vector2(0, 0), center: bool=True, center_x_axis: bool=True, center_y_axis: bool=True, center_scale: bool=True):
         self.image_surface = surface
