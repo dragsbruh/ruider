@@ -7,6 +7,7 @@
 A very humble manga reader that focuses on reading pre-downloaded mangas with a simple minimal and the "pro" (lies) style keybindings for the casual manga reading experience.
 
 **NOTE:** Ruider is a very simple manga reader that does not download any copyrighted content. The only external assets used are the app icon and font file (icon from "The Gods Lie" manga and "Jetbrains Mono" font from Jetbrains)
+
 **NOTE:** Ruider sets some standards regarding how you store manga files. But they will be easy to follow.
 
 ## Manual
@@ -27,15 +28,25 @@ A very humble manga reader that focuses on reading pre-downloaded mangas with a 
       ...
   ```
 
+  You can also download single chapter image only mangas, like from *cough cough*
+
+  ```python
+  /manga_dir
+  ./manga name
+    1.png
+    2.png
+    3.png
+  ```
+
 6. Create `config.toml` in the installation directory and pecify your manga dir in it
   ```toml
-  manga_home = "/path/to/manga/directory" # Highly recommended to use absolute path
+  manga_home = ["/path/to/manga/directory"] # Highly recommended to use absolute path
   ```
 
 ### Usage
 
 1. Run `ruider.py` with the name of the manga you want to read:
-  `python ruider.py "Shingeki no kyojin"`
+  Ex: `python ruider.py shingeki no kyojin`
   **NOTE:** Manga name is case in-sensitive.
   Thats it!
 
@@ -47,6 +58,7 @@ A very humble manga reader that focuses on reading pre-downloaded mangas with a 
 6. You can bookmark the page and chapter by using `b` key.
   You can jump to the bookmark with `k` key.
   There can only be only one bookmark per manga.
+7. You can save current page as an image using `s` key.
 
 ### Naming convention
 
