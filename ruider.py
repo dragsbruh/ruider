@@ -61,7 +61,7 @@ class Var:
         if not found:
             print(f"Usage: python ruider.py <manga-name>")
             print(f"Please provide a valid manga name to read, or run with -l to list available mangas")
-            print("Either manga home does not exist or your manga wasnt found")
+            print(f"Either manga home does not exist or your manga ({manga_name}) wasnt found")
             exit(1)
 
         manga_name = manga_name.title()
@@ -91,12 +91,14 @@ def dump_history():
         overall = history["overall"]
     else:
         overall = 0
-    if Var.manga.name.lower() in history:
-        already_spent = history[Var.manga.name.lower()]
+    if "mangas" in history:
+        if Var.manga.name.lower() in history["mangas"]:
+            already_spent = history["mangas"][Var.manga.name.lower()]
+        else:
+            already_spent = 0
     else:
-        already_spent = 0
-    if not "mangas" in history:
         history["mangas"] = {}
+        already_spent = 0
     history["mangas"][Var.manga.name.lower()] = already_spent + Svar.time_spent
     history["overall"] = overall + Svar.time_spent
     write_data(history, history_file)
@@ -290,7 +292,7 @@ def main():
                 Var.temporary_messages.remove((message, message_time))
         
 
-        if Var.context.framecount % (fps * 7) == 0: # Update history every 7 seconds
+        if Var.context.framecount % (fps * 1) == 0: # Update history every 7 seconds
             # TODO: Find a way to see if user is actively reading or smth
             now = time.time()
             Svar.time_spent += now - Svar.last_checked_time
@@ -315,7 +317,7 @@ if __name__ == "__main__":
         overall = history["overall"] if "overall" in history else 0
         print(f"You spent exactly {math.floor(overall)} seconds using ruider to read manga.")
         print(f"\tThat is, {math.floor(overall/60)} minutes")
-        print(f"\tOr {math.ceil(overall/3600)} hours")
+        print(f"\tOr {math.floor(overall/3600)} hours")
         print()
         mangas = history["mangas"] if "mangas" in history else []
         for mg in mangas.keys():
