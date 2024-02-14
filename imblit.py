@@ -163,33 +163,34 @@ class IMBlit:
             self.fullscreen = False
     
     def apply_gui_special_effects(self):
+        gui_shadow_color_change_rate = 3
         if self.gui_background_state == 0:
-            self.gui_shadow_color[0] += 1
+            self.gui_shadow_color[0] += gui_shadow_color_change_rate
             if self.gui_shadow_color[0] >= 255:
                 self.gui_background_state = 1
                 self.gui_shadow_color[0] = 255
         elif self.gui_background_state == 1:
-            self.gui_shadow_color[1] += 1
+            self.gui_shadow_color[1] += gui_shadow_color_change_rate
             if self.gui_shadow_color[1] >= 255:
                 self.gui_background_state = 2
                 self.gui_shadow_color[1] = 255
         elif self.gui_background_state == 2:
-            self.gui_shadow_color[2] += 1
+            self.gui_shadow_color[2] += gui_shadow_color_change_rate
             if self.gui_shadow_color[2] >= 255:
                 self.gui_background_state = 3
                 self.gui_shadow_color[2] = 255
         elif self.gui_background_state == 3:
-            self.gui_shadow_color[0] -= 1
+            self.gui_shadow_color[0] -= gui_shadow_color_change_rate
             if self.gui_shadow_color[0] <= 0:
                 self.gui_background_state = 4
                 self.gui_shadow_color[0] = 0
         elif self.gui_background_state == 4:
-            self.gui_shadow_color[1] -= 1
+            self.gui_shadow_color[1] -= gui_shadow_color_change_rate
             if self.gui_shadow_color[1] <= 0:
                 self.gui_background_state = 5
                 self.gui_shadow_color[1] = 0
         elif self.gui_background_state == 5:
-            self.gui_shadow_color[2] -= 1
+            self.gui_shadow_color[2] -= gui_shadow_color_change_rate
             if self.gui_shadow_color[2] <= 0:
                 self.gui_background_state = 0
                 self.gui_shadow_color[2] = 0
