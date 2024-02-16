@@ -37,6 +37,12 @@ class Var:
         bookmarks = get_data(bookmark_filename)
         if len(sys.argv) > 1:
             manga_name = sys.argv[-1]
+            if not os.path.exists(manga.Manga.get_path(manga_name)):
+                names = manga.get_names()
+                for name in names:
+                    if name.lower().startswith(manga_name.lower()):
+                        manga_name = name
+                        continue
         else:
             try:
                 manga_name = bookmarks["previously_reading"].title()

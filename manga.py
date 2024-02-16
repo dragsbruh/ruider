@@ -139,6 +139,12 @@ def extract_number(text: str):
         return float(clean)
     return int(clean)
 
+def get_names():
+    mangas = []
+    for home in MANGA_HOMES:
+        mangas.extend([name for name in os.listdir(home) if os.path.isdir(Manga.get_path(name))])
+    return mangas
+
 def get_mangas():
     mangas = []
     for home in MANGA_HOMES:
