@@ -14,6 +14,8 @@ if "%1" == "-w" (
     goto invisibleoutput
 )
 
+goto visibleoutput
+
 :invisibleoutput
 pythonw "%SCRIPT%"
 goto end
