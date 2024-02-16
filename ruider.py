@@ -13,9 +13,13 @@ from tkinter import filedialog
 import manga
 
 # Constants
-bookmark_filename = os.path.join(os.path.dirname(__file__), "bookmarks.toml")
-config_file = os.path.join(os.path.dirname(__file__), "config.toml")
-history_file = os.path.join(os.path.dirname(__file__), "history.toml")
+datadir = os.path.join(os.path.dirname(__file__), "userdata")
+os.makedirs(datadir, exist_ok=True)
+
+bookmark_filename = os.path.join(datadir, "bookmarks.toml")
+config_file = os.path.join(datadir, "config.toml")
+history_file = os.path.join(datadir, "history.toml")
+
 monitor = screeninfo.get_monitors()[0]
 
 class Var:
@@ -201,9 +205,15 @@ def load_config():
     Config.resolution = pygame.Vector2(monitor.width, monitor.height)
     Config.resizable = False
     Config.fullscreen = False
-
-    with open(config_file, 'r') as f:
-        config = toml.load(f)
+    
+    if os.path.exists(config_file):
+        with open(config_file, 'r') as f:
+            config = toml.load(f)
+    else:
+        print("Config file not found!")
+        config = {
+            "manga_homes": []
+        }
 
     manga.MANGA_HOMES = config["manga_homes"]
     if "resolution" in config: Config.resolution.x, Config.resolution.y = config["resolution"]
@@ -310,6 +320,7 @@ def main():
 if __name__ == "__main__":
     list_mangas = "-l" in sys.argv or "--list" in sys.argv
     show_stats = "-s" in sys.argv or "--stats" in sys.argv
+    clear = "-c" in sys.argv or "--clear" in sys.argv
 
     if list_mangas:
         load_config()
@@ -325,8 +336,14 @@ if __name__ == "__main__":
         print(f"\tThat is, {math.floor(overall/60)} minutes")
         print(f"\tOr {math.floor(overall/3600)} hours")
         print()
-        mangas = history["mangas"] if "mangas" in history else []
+        mangas = history["mangas"] if "mangas" in history else {}
         for mg in mangas.keys():
             print(f"You spent {math.floor(mangas[mg])} seconds ({math.floor(mangas[mg]/3600)} hours {math.ceil((mangas[mg]/60)%60)} minute(s)) reading \"{mg.title()}\"")
+        exit(0)
+    elif clear:
+        bookmarks = get_data(bookmark_filename)
+        try: del bookmarks["previously_reading"]
+        except KeyError: pass
+        write_data(bookmarks, bookmark_filename)
         exit(0)
     main()

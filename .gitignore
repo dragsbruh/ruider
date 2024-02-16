@@ -1,5 +1,4 @@
 __pycache__
-bookmarks.toml
-config.toml
-history.toml
+userdata
 venv
+ignore
