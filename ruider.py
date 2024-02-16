@@ -327,6 +327,6 @@ if __name__ == "__main__":
         print()
         mangas = history["mangas"] if "mangas" in history else []
         for mg in mangas.keys():
-            print(f"You spent {math.floor(mangas[mg])} seconds ({math.floor(overall/3600)} hours {math.floor(overall)%60} minutes) reading {mg}")
+            print(f"You spent {math.floor(mangas[mg])} seconds ({math.floor(mangas[mg]/3600)} hours {math.ceil((mangas[mg]/60)%60)} minute(s)) reading \"{mg.title()}\"")
         exit(0)
     main()
