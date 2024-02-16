@@ -6,11 +6,11 @@ if "%*" == "" (
     goto invisibleoutput
 )
 
-if "%1" == "-d" (
+if "%1" == "-v" (
     goto visibleoutput
 )
 
-if "%1" == "-w" (
+if "%1" == "-i" (
     goto invisibleoutput
 )
 
@@ -22,5 +22,6 @@ goto end
 
 :visibleoutput
 python "%SCRIPT%" "%*"
+goto end
 
 :end
