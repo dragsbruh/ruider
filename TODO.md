@@ -1,5 +1,6 @@
 # TODO
 
+- [ ] Smooth scroll
 - [ ] Better flash temporary messages
 - [ ] Even more customization
 - [ ] Speed (migrate from fitz pymupdf to something else?)
