@@ -205,10 +205,6 @@ def load_bookmark():
 
 # Configuration
 def load_config():
-    Config.resolution = pygame.Vector2(monitor.width, monitor.height)
-    Config.resizable = False
-    Config.fullscreen = False
-    
     if os.path.exists(config_file):
         with open(config_file, 'r') as f:
             config = toml.load(f)
@@ -219,11 +215,12 @@ def load_config():
         }
 
     manga.MANGA_HOMES = config["manga_homes"]
-    if "resolution" in config: Config.resolution.x, Config.resolution.y = config["resolution"]
-    if "resizable" in config: Config.resizable = config["resizable"]
-    if "fullscreen" in config: Config.fullscreen = config["fullscreen"]
-    if "scroll_speed" in config: Config.scroll_speed = config["scroll_speed"]
-    if "scroll_scale" in config: Config.scroll_scale = config["scroll_scale"]
+    # Config.item = config["item"] if "item" in config else default
+    Config.resolution = config["resolution"] if "resolution" in config else pygame.Vector2(monitor.width, monitor.height)
+    Config.resizable = config["resizable"] if "resizable" in config else False
+    Config.fullscreen = config["fullscreen"] if "fullscreen" in config else False
+    Config.scroll_speed = config["scroll_speed"] if "scroll_speed" in config else 4
+    Config.scroll_scale = config["scroll_scale"] if "scroll_scale" in config else 1.35
 
 def keypress(key):
     refresh_info()
@@ -290,8 +287,14 @@ def windowresized():
 def main():
     load_config()
     Var.setup()
+
     refresh_info()
     Var.context = imblit.IMBlit(Config.resolution, Config.resizable, Config.fullscreen, title=f"Ruider - {Var.manga_name.title()}")
+    
+    
+    Var.context.scroll_speed = Config.scroll_speed
+    Var.context.scroll_scale = Config.scroll_scale
+
     display_page()
 
     Var.context.onwindowresize(windowresized)

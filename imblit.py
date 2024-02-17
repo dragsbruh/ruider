@@ -106,8 +106,9 @@ class IMBlit:
                 if self.scroll.y > 0:
                     self.scroll.y = 0
                 # HACK: FIXME: TODO
-                elif self.scroll.y < -self.image_surface.get_height()/(2*self.scroll_scale):
-                    self.scroll.y = -self.image_surface.get_height()/(2*self.scroll_scale)
+                imgbottom = self.scroll.y + self.image_surface.get_height()
+                if imgbottom < self.display.get_height():
+                    self.scroll.y = -(self.image_surface.get_height() - self.display.get_height())
                 self.display.blit(self.image_surface, self.image_position+self.scroll)
             else:
                 self.display.blit(self.image_surface, self.image_position)
