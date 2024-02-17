@@ -17,11 +17,11 @@ if "%1" == "-i" (
 goto visibleoutput
 
 :invisibleoutput
-pythonw "%SCRIPT%"
+pythonw "%SCRIPT%" %2
 goto end
 
 :visibleoutput
-python "%SCRIPT%" "%*"
+python "%SCRIPT%" %*
 goto end
 
 :end
