@@ -89,6 +89,9 @@ class Config:
     resolution: pygame.Vector2 | tuple[int, int]
     resizable: bool
 
+    scroll_speed: int
+    scroll_scale: float
+
 
 class Svar:
     time_spent: float = 0
@@ -219,6 +222,8 @@ def load_config():
     if "resolution" in config: Config.resolution.x, Config.resolution.y = config["resolution"]
     if "resizable" in config: Config.resizable = config["resizable"]
     if "fullscreen" in config: Config.fullscreen = config["fullscreen"]
+    if "scroll_speed" in config: Config.scroll_speed = config["scroll_speed"]
+    if "scroll_scale" in config: Config.scroll_scale = config["scroll_scale"]
 
 def keypress(key):
     refresh_info()

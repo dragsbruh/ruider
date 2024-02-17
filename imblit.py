@@ -31,6 +31,11 @@ class IMBlit:
     gui_background_color: list[int, int, int]
     gui_background_state: int
 
+    scroll_speed: int
+    scroll_scale: float
+    scroll: pygame.Vector2
+    scrollable: bool
+
     resizable: bool
     fullscreen: bool
 
@@ -73,6 +78,10 @@ class IMBlit:
         self.fullscreen = fullscreen
 
         self.framecount = 0
+        self.scrollable = True
+        self.scroll_speed = 4
+        self.scroll_scale = 1.5
+        self.scroll = pygame.Vector2(0, 0)
 
     def update(self, tick: int | None=None):
         for e in pygame.event.get():
@@ -84,11 +93,24 @@ class IMBlit:
             elif e.type == pygame.WINDOWRESIZED:
                 if self._window_resize_cb:
                     self._window_resize_cb()
+        
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_DOWN]:
+            self.scroll.y -= self.scroll_speed
+        elif keys[pygame.K_UP]:
+            self.scroll.y += self.scroll_speed
 
         self.display.fill(self.background_color)
         if self.image_surface != None:
-            self.display.blit(self.image_surface, self.image_position)
-        
+            if self.scrollable:
+                if self.scroll.y > 0:
+                    self.scroll.y = 0
+                # HACK: FIXME: TODO
+                elif self.scroll.y < -self.image_surface.get_height()/(2*self.scroll_scale):
+                    self.scroll.y = -self.image_surface.get_height()/(2*self.scroll_scale)
+                self.display.blit(self.image_surface, self.image_position+self.scroll)
+            else:
+                self.display.blit(self.image_surface, self.image_position)
         if self.show_gui:
             self.apply_gui_special_effects()
             background_rect = pygame.rect.Rect((self.gui_padding/2) + self.gui_shadow_offset, (self.gui_padding/2) + self.gui_shadow_offset, self.gui_element_width+self.gui_padding, self.gui_element_y)
@@ -124,6 +146,7 @@ class IMBlit:
         self.size = pygame.Vector2(self.display.get_size())
         width = self.image_surface.get_width()
         height = self.image_surface.get_height()
+        self.scroll = pygame.Vector2(0, 0)
 
         if scale:
             width_ratio = width/self.size.x
@@ -134,12 +157,16 @@ class IMBlit:
             width = width/ratio
             height = height/ratio
 
+            if self.scrollable:
+                width *= self.scroll_scale
+                height *= self.scroll_scale
+
             self.image_surface = pygame.transform.scale(self.image_surface, (width, height))
 
         self.image_position = pygame.Vector2()
         if x_axis:
             self.image_position.x = (self.size.x - width)/2
-        if y_axis:
+        if y_axis and not self.scrollable:
             self.image_position.y = (self.size.y - height)/2
     
     def add_gui_item(self, message: str):   
