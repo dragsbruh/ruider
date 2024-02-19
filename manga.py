@@ -150,3 +150,6 @@ def get_mangas():
     for home in MANGA_HOMES:
         mangas.extend([Manga(name) for name in os.listdir(home) if os.path.isdir(Manga.get_path(name))])
     return mangas
+
+def manga_exists(manga_name: str):
+    return os.path.exists(Manga.get_path(manga_name))

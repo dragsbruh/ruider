@@ -203,6 +203,15 @@ def load_bookmark():
     else:
         flash(f"Bookmark not found for {Var.manga_name.lower()}")
 
+def fix_missing():
+    history = get_data(history_file)
+    manga_names = list(history["mangas"].keys())
+    for manga_name in manga_names:
+        if not manga.manga_exists(manga_name):
+            print("Deleted invalid entry:", manga_name)
+            del history["mangas"][manga_name]
+    write_data(history, history_file)
+
 # Configuration
 def load_config():
     if os.path.exists(config_file):
@@ -272,6 +281,7 @@ def keypress(key):
         Var.page_index = 0
     elif key == pygame.K_b:
         bookmark_page()
+        return
     elif key == pygame.K_j:
         load_bookmark()
     else:
@@ -311,7 +321,7 @@ def main():
             Var.context.add_gui_item(f"Page {Var.chapter_number}/{len(Var.chapters)}")
         current_time = time.time()
         for message, message_time in Var.temporary_messages:
-            Var.context.add_gui_item(message)
+            Var.context.add_alert(message)
             if current_time - message_time > 3.5:
                 Var.temporary_messages.remove((message, message_time))
         
@@ -329,6 +339,7 @@ if __name__ == "__main__":
     list_mangas = "-l" in sys.argv or "--list" in sys.argv
     show_stats = "-s" in sys.argv or "--stats" in sys.argv
     clear = "-c" in sys.argv or "--clear" in sys.argv
+    fix = "-f" in sys.argv or "--fix" in sys.argv
 
     if list_mangas:
         load_config()
@@ -353,5 +364,9 @@ if __name__ == "__main__":
         try: del bookmarks["previously_reading"]
         except KeyError: pass
         write_data(bookmarks, bookmark_filename)
+        exit(0)
+    elif fix:
+        load_config()
+        fix_missing()
         exit(0)
     main()

@@ -13,6 +13,10 @@ sys.stdout = sys.__stdout__
 
 assets_path = os.path.join(os.path.dirname(__file__), "assets")
 
+def invert_color(color: tuple[int, int, int]):
+    r, g, b = color
+    return (255 - r, 255 - g, 255 - b)
+
 class IMBlit:
     display: pygame.Surface
     size: pygame.Vector2
@@ -22,7 +26,9 @@ class IMBlit:
     image_position: pygame.Vector2
     clock: pygame.time.Clock
     messages: list[tuple[pygame.Surface, pygame.Vector2]]
+    alerts: list[tuple[pygame.Surface, pygame.Vector2]]
     font: pygame.font.Font
+    font_alert: pygame.font.Font
     gui_element_y: int
     gui_element_width: int
     show_gui: bool
@@ -30,6 +36,9 @@ class IMBlit:
     gui_shadow_color: list[int, int, int]
     gui_background_color: list[int, int, int]
     gui_background_state: int
+
+    alert_padding: int
+    gui_alert_width: int
 
     scroll_speed: int
     scroll_scale: float
@@ -50,6 +59,7 @@ class IMBlit:
             self.display = pygame.display.set_mode(resolution)
 
         self.font = pygame.font.Font(os.path.join(assets_path, "font.ttf"), 16)
+        self.font = pygame.font.Font(os.path.join(assets_path, "font.ttf"), 18)
         icon = pygame.image.load(os.path.join(assets_path, "icon.png"))
         pygame.display.set_caption(title)
         pygame.display.set_icon(icon)
@@ -73,6 +83,10 @@ class IMBlit:
         self.gui_shadow_color = [20, 40, 80]
         self.gui_background_color = [20, 20, 20]
         self.gui_background_state = 0
+
+        self.gui_alert_width = 0
+        self.alert_padding = 20
+        self.alerts = []
 
         self.resizable = resizable
         self.fullscreen = fullscreen
@@ -121,10 +135,28 @@ class IMBlit:
             pygame.draw.rect(self.display, self.gui_background_color, background_rect, border_radius=4)
             for surface, position in self.messages:
                 self.display.blit(surface, position)
+            
+            position = pygame.Vector2(self.size.x - self.gui_alert_width - self.gui_padding)
+            position.y = self.gui_padding
+
+            for alert in self.alerts:
+                color = invert_color(self.gui_shadow_color)
+                surf = self.font.render(alert, True, color)
+                background_rect = pygame.rect.Rect(position.x - self.gui_padding/2, position.y - self.gui_padding/2, surf.get_width() + self.gui_padding, surf.get_height() + self.gui_padding)
+                pygame.draw.rect(self.display, self.gui_shadow_color, background_rect, border_radius=4)
+                
+                self.display.blit(surf, position)
+                position.y += surf.get_height() + self.alert_padding
+
         pygame.display.update()
+        self.gui_alert_width = 0
+        self.gui_alert_y = 0
+        self.alerts = []
+
         self.gui_element_width = 0
         self.gui_element_y = 0
         self.messages = []
+    
 
         if tick:
             self.clock.tick(tick)
@@ -228,3 +260,10 @@ class IMBlit:
             if self.gui_shadow_color[2] <= 0:
                 self.gui_background_state = 0
                 self.gui_shadow_color[2] = 0
+    
+    def add_alert(self, message: str):
+        demo = self.font.render(message, True, (255, 255, 255))
+        self.alerts.append(message)
+        if demo.get_width() > self.gui_alert_width:
+            self.gui_alert_width = demo.get_width()
+        
