@@ -88,9 +88,20 @@ class Config:
     fullscreen: bool
     resolution: pygame.Vector2 | tuple[int, int]
     resizable: bool
+    
+    background: tuple[int, int, int]
 
     scroll_speed: int
     scroll_scale: float
+
+    flash_background: tuple[int, int, int]
+    flash_foreground: tuple[int, int, int]
+
+    rgb: bool
+
+    gui_background: tuple[int, int, int]
+    gui_foreground: tuple[int, int, int]
+    gui_shadow: tuple[int, int, int]
 
 
 class Svar:
@@ -230,6 +241,15 @@ def load_config():
     Config.fullscreen = config["fullscreen"] if "fullscreen" in config else False
     Config.scroll_speed = config["scroll_speed"] if "scroll_speed" in config else 4
     Config.scroll_scale = config["scroll_scale"] if "scroll_scale" in config else 1.35
+    Config.background = config["background"] if "background" in config else None
+    Config.gui_background = config["gui_background"] if "gui_background" in config else None
+    Config.gui_foreground = config["gui_foreground"] if "gui_foreground" in config else None
+    Config.gui_shadow = config["gui_shadow"] if "gui_shadow" in config else None
+    Config.flash_background = config["flash_background"] if "flash_background" in config else None
+    Config.flash_foreground = config["flash_foreground"] if "flash_foreground" in config else None
+    Config.rgb = config["rgb"] if "rgb" in config else True
+
+    imblit.config = Config
 
 def keypress(key):
     refresh_info()
@@ -336,13 +356,14 @@ def main():
         Var.context.update(fps)
 
 if __name__ == "__main__":
+    load_config()
+
     list_mangas = "-l" in sys.argv or "--list" in sys.argv
     show_stats = "-s" in sys.argv or "--stats" in sys.argv
     clear = "-c" in sys.argv or "--clear" in sys.argv
     fix = "-f" in sys.argv or "--fix" in sys.argv
 
     if list_mangas:
-        load_config()
         mangas = manga.get_mangas()
         # TODO: Smoothen out
         for n, mg in enumerate(mangas):
@@ -366,7 +387,6 @@ if __name__ == "__main__":
         write_data(bookmarks, bookmark_filename)
         exit(0)
     elif fix:
-        load_config()
         fix_missing()
         exit(0)
     main()

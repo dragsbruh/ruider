@@ -13,6 +13,29 @@ sys.stdout = sys.__stdout__
 
 assets_path = os.path.join(os.path.dirname(__file__), "assets")
 
+# TODO::Share this in all scripts
+class Config:
+    fullscreen: bool
+    resolution: pygame.Vector2 | tuple[int, int]
+    resizable: bool
+    
+    background: tuple[int, int, int]
+
+    scroll_speed: int
+    scroll_scale: float
+
+    flash_background: tuple[int, int, int]
+    flash_foreground: tuple[int, int, int]
+
+    rgb: bool
+
+    gui_background: tuple[int, int, int]
+    gui_foreground: tuple[int, int, int]
+    gui_shadow: tuple[int, int, int]
+
+
+config: Config # MUST BE SET TO CONFIG VALUES BEFORE IMBLIT CONTEXT INIT
+
 def invert_color(color: tuple[int, int, int]):
     r, g, b = color
     return (255 - r, 255 - g, 255 - b)
@@ -65,7 +88,7 @@ class IMBlit:
         pygame.display.set_icon(icon)
         
         self.size = pygame.math.Vector2(resolution)
-        self.background_color = background_color
+        self.background_color = config.background or background_color
         self.image_surface = None
         
         self._key_press_cb = None
@@ -80,8 +103,8 @@ class IMBlit:
         self.gui_element_width = 0
         self.gui_padding = 10
         self.gui_shadow_offset = 3
-        self.gui_shadow_color = [20, 40, 80]
-        self.gui_background_color = [20, 20, 20]
+        self.gui_shadow_color = config.gui_shadow or [20, 40, 80]
+        self.gui_background_color = config.gui_background or [20, 20, 20]
         self.gui_background_state = 0
 
         self.gui_alert_width = 0
@@ -127,7 +150,8 @@ class IMBlit:
             else:
                 self.display.blit(self.image_surface, self.image_position)
         if self.show_gui:
-            self.apply_gui_special_effects()
+            if config.rgb:
+                self.apply_gui_special_effects()
             background_rect = pygame.rect.Rect((self.gui_padding/2) + self.gui_shadow_offset, (self.gui_padding/2) + self.gui_shadow_offset, self.gui_element_width+self.gui_padding, self.gui_element_y)
             pygame.draw.rect(self.display, self.gui_shadow_color, background_rect, border_radius=4)
             background_rect.x -= self.gui_shadow_offset
@@ -140,10 +164,24 @@ class IMBlit:
             position.y = self.gui_padding
 
             for alert in self.alerts:
-                color = invert_color(self.gui_shadow_color)
+                if config.flash_foreground:
+                    color = config.flash_foreground
+                elif config.rgb:
+                    color = invert_color(self.gui_shadow_color)
+                else:
+                    color = (255, 255, 255)
+
                 surf = self.font.render(alert, True, color)
+
                 background_rect = pygame.rect.Rect(position.x - self.gui_padding/2, position.y - self.gui_padding/2, surf.get_width() + self.gui_padding, surf.get_height() + self.gui_padding)
-                pygame.draw.rect(self.display, self.gui_shadow_color, background_rect, border_radius=4)
+                if config.flash_background:
+                    bg_color = config.flash_background
+                elif config.rgb:
+                    bg_color = self.gui_shadow_color
+                else:
+                    bg_color = (25, 25, 25)
+
+                pygame.draw.rect(self.display, bg_color, background_rect, border_radius=4)
                 
                 self.display.blit(surf, position)
                 position.y += surf.get_height() + self.alert_padding
@@ -203,8 +241,12 @@ class IMBlit:
             self.image_position.y = (self.size.y - height)/2
     
     def add_gui_item(self, message: str):   
+        if config.gui_foreground:
+            color = config.gui_foreground
+        else:
+            color = (255, 255, 255)
         pos = pygame.Vector2()
-        surf = self.font.render(message, True, (255, 255, 255))
+        surf = self.font.render(message, True, color)
         pos.x = self.gui_padding
         pos.y = self.gui_element_y + self.gui_padding
         self.gui_element_y += surf.get_height() + self.gui_padding
@@ -229,37 +271,40 @@ class IMBlit:
             self.fullscreen = False
     
     def apply_gui_special_effects(self):
-        gui_shadow_color_change_rate = 3
-        if self.gui_background_state == 0:
-            self.gui_shadow_color[0] += gui_shadow_color_change_rate
-            if self.gui_shadow_color[0] >= 255:
-                self.gui_background_state = 1
-                self.gui_shadow_color[0] = 255
-        elif self.gui_background_state == 1:
-            self.gui_shadow_color[1] += gui_shadow_color_change_rate
-            if self.gui_shadow_color[1] >= 255:
-                self.gui_background_state = 2
-                self.gui_shadow_color[1] = 255
-        elif self.gui_background_state == 2:
-            self.gui_shadow_color[2] += gui_shadow_color_change_rate
-            if self.gui_shadow_color[2] >= 255:
-                self.gui_background_state = 3
-                self.gui_shadow_color[2] = 255
-        elif self.gui_background_state == 3:
-            self.gui_shadow_color[0] -= gui_shadow_color_change_rate
-            if self.gui_shadow_color[0] <= 0:
-                self.gui_background_state = 4
-                self.gui_shadow_color[0] = 0
-        elif self.gui_background_state == 4:
-            self.gui_shadow_color[1] -= gui_shadow_color_change_rate
-            if self.gui_shadow_color[1] <= 0:
-                self.gui_background_state = 5
-                self.gui_shadow_color[1] = 0
-        elif self.gui_background_state == 5:
-            self.gui_shadow_color[2] -= gui_shadow_color_change_rate
-            if self.gui_shadow_color[2] <= 0:
-                self.gui_background_state = 0
-                self.gui_shadow_color[2] = 0
+        if config.rgb:
+            gui_shadow_color_change_rate = 3
+            if self.gui_background_state == 0:
+                self.gui_shadow_color[0] += gui_shadow_color_change_rate
+                if self.gui_shadow_color[0] >= 255:
+                    self.gui_background_state = 1
+                    self.gui_shadow_color[0] = 255
+            elif self.gui_background_state == 1:
+                self.gui_shadow_color[1] += gui_shadow_color_change_rate
+                if self.gui_shadow_color[1] >= 255:
+                    self.gui_background_state = 2
+                    self.gui_shadow_color[1] = 255
+            elif self.gui_background_state == 2:
+                self.gui_shadow_color[2] += gui_shadow_color_change_rate
+                if self.gui_shadow_color[2] >= 255:
+                    self.gui_background_state = 3
+                    self.gui_shadow_color[2] = 255
+            elif self.gui_background_state == 3:
+                self.gui_shadow_color[0] -= gui_shadow_color_change_rate
+                if self.gui_shadow_color[0] <= 0:
+                    self.gui_background_state = 4
+                    self.gui_shadow_color[0] = 0
+            elif self.gui_background_state == 4:
+                self.gui_shadow_color[1] -= gui_shadow_color_change_rate
+                if self.gui_shadow_color[1] <= 0:
+                    self.gui_background_state = 5
+                    self.gui_shadow_color[1] = 0
+            elif self.gui_background_state == 5:
+                self.gui_shadow_color[2] -= gui_shadow_color_change_rate
+                if self.gui_shadow_color[2] <= 0:
+                    self.gui_background_state = 0
+                    self.gui_shadow_color[2] = 0
+        else:
+            self.gui_shadow_color = config.gui_shadow
     
     def add_alert(self, message: str):
         demo = self.font.render(message, True, (255, 255, 255))
