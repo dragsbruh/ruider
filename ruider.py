@@ -314,6 +314,16 @@ def windowresized():
     if Var.context.image_surface:
         Var.context.center_image()
 
+def mousebuttondown(button):
+    if button == 1:
+        Var.page_index += 1
+    elif button == 3:
+        Var.page_index -= 1
+    else:
+        return # Very important
+    refresh_info()
+    refresh_page(Var.display_page)
+
 def main():
     load_config()
     Var.setup()
@@ -329,6 +339,7 @@ def main():
 
     Var.context.onwindowresize(windowresized)
     Var.context.onkeypress(keypress)
+    Var.context.onmousebuttondown(mousebuttondown)
 
     fps = 60
     

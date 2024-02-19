@@ -45,13 +45,15 @@ class IMBlit:
     size: pygame.Vector2
     should_close: bool = False
     background_color: tuple[int, int, int]
+
     image_surface: pygame.Surface
     image_position: pygame.Vector2
+
     clock: pygame.time.Clock
-    messages: list[tuple[pygame.Surface, pygame.Vector2]]
-    alerts: list[tuple[pygame.Surface, pygame.Vector2]]
+
     font: pygame.font.Font
     font_alert: pygame.font.Font
+
     gui_element_y: int
     gui_element_width: int
     show_gui: bool
@@ -62,6 +64,9 @@ class IMBlit:
 
     alert_padding: int
     gui_alert_width: int
+
+    messages: list[tuple[pygame.Surface, pygame.Vector2]]
+    alerts: list[tuple[pygame.Surface, pygame.Vector2]]
 
     scroll_speed: int
     scroll_scale: float
@@ -93,6 +98,8 @@ class IMBlit:
         
         self._key_press_cb = None
         self._window_resize_cb = None
+        self._mouse_button_down_cb = None
+        self._mouse_button_up_cb = None
 
         self.clock = pygame.time.Clock()
         self.should_close = False
@@ -130,6 +137,14 @@ class IMBlit:
             elif e.type == pygame.WINDOWRESIZED:
                 if self._window_resize_cb:
                     self._window_resize_cb()
+            elif e.type == pygame.MOUSEWHEEL:
+                self.scroll.y += self.scroll_speed * e.y * 4
+            elif e.type == pygame.MOUSEBUTTONDOWN:
+                if self._mouse_button_down_cb:
+                    self._mouse_button_down_cb(e.button)
+            elif e.type == pygame.MOUSEBUTTONUP:
+                if self._mouse_button_up_cb:
+                    self._mouse_button_up_cb(e.button)
         
         keys = pygame.key.get_pressed()
         if keys[pygame.K_DOWN]:
@@ -212,6 +227,12 @@ class IMBlit:
 
     def onwindowresize(self, fun):
         self._window_resize_cb = fun
+
+    def onmousebuttondown(self, fun):
+        self._mouse_button_down_cb = fun
+    
+    def onmousebuttonup(self, fun):
+        self._mouse_button_up_cb = fun
 
     def center_image(self, x_axis: bool=True, y_axis: bool=True, scale: bool=True):
         self.size = pygame.Vector2(self.display.get_size())
