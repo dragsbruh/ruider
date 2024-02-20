@@ -1,51 +1,24 @@
 import io
 import math
-import os
 import sys
 import time
-import toml
 import imblit
 import pygame
-import screeninfo
 
 from tkinter import filedialog
 
 from common import flash, Var, write_data, get_data, refresh_info
+from tracking import load_bookmark, bookmark_page, dump_history, fix_missing
 from config import history_file, bookmark_filename, monitor, Config, load_config
 
 import manga
 
-
-def dump_history():
-    history = get_data(history_file)
-    if "overall" in history:
-        overall = history["overall"]
-    else:
-        overall = 0
-    if "mangas" in history:
-        if Var.manga.name.lower() in history["mangas"]:
-            already_spent = history["mangas"][Var.manga.name.lower()]
-        else:
-            already_spent = 0
-    else:
-        history["mangas"] = {}
-        already_spent = 0
-    history["mangas"][Var.manga.name.lower()] = already_spent + Var.time_spent
-    history["overall"] = overall + Var.time_spent
-    write_data(history, history_file)
-    Var.time_spent = 0
-
-# Refresh basic info like manga name, chapter number etc
-
-# Display the new page to imblit
 def display_page():
     fp = io.BytesIO(Var.chapters[Var.chapter_index].get_page(Var.page_index))
     surf = pygame.image.load(fp)
-    # pygame.image.save(surf, "test.png")
     Var.context.display_image(surf)
     fp.close()
 
-# Refresh the page by clamping the page and chapter index
 def refresh_page(call_display: bool=True):
     if Var.page_index > Var.chapter_page_count - 1:
         Var.chapter_index += 1
@@ -66,54 +39,9 @@ def refresh_page(call_display: bool=True):
         display_page()
     refresh_info()
 
-# Temporarily show gui message
-
-# Retrieve bookmarks from bookmark file
-
-# Bookmark current page
-def bookmark_page():
-    bookmarks = get_data(bookmark_filename)
-
-    bookmarks[Var.manga_name.lower()] = {
-        "chapter_index": Var.chapter_index,
-        "page_index": Var.page_index,
-        "chapter_number_readable": Var.chapter_number # Only in case user wants to manually modify bookmark, not for internal use
-    }
-
-    write_data(bookmarks, bookmark_filename)
-    flash(f"Saved bookmark to ch{Var.chapter_number} pg{Var.page_index+1}")
-
-# Change page to bookmarked page
-def load_bookmark():
-    bookmarks = get_data(bookmark_filename)
-    
-    if Var.manga_name.lower() in bookmarks:
-        try: 
-            Var.chapter_index = bookmarks[Var.manga_name.lower()]["chapter_index"]
-            Var.page_index = bookmarks[Var.manga_name.lower()]["page_index"]
-        except KeyError:
-            flash("Corrupt bookmark")
-        else:
-            refresh_info()
-            flash(f"Jumped to ch{Var.chapter_number} pg{Var.page_index+1}")
-    else:
-        flash(f"Bookmark not found for {Var.manga_name.lower()}")
-
-def fix_missing():
-    history = get_data(history_file)
-    manga_names = list(history["mangas"].keys())
-    for manga_name in manga_names:
-        if not manga.manga_exists(manga_name):
-            print("Deleted invalid entry:", manga_name)
-            del history["mangas"][manga_name]
-    write_data(history, history_file)
-
-# Configuration
-
 def keypress(key):
     refresh_info()
 
-    # Configuration stuff
     if key == pygame.K_r:
         Var.display_page = not Var.display_page
         if Var.context.image_surface != None:
@@ -129,7 +57,6 @@ def keypress(key):
         refresh_page(Var.display_page)
         return
 
-    # Misc features
     if key == pygame.K_s:
         f = filedialog.asksaveasfile("wb", filetypes=[('PNG Image', '.png')], defaultextension='.png')
         if f == None:
@@ -141,7 +68,6 @@ def keypress(key):
         flash(f"Saved to {f.name}")
         return
     
-    # Page/Chapter
     if key == pygame.K_PLUS or key == pygame.K_EQUALS: # TODO: Fixme
         Var.page_index += 5
         if Var.page_index >= Var.chapter_page_count: Var.page_index = Var.chapter_page_count - 1
@@ -190,7 +116,6 @@ def main():
     refresh_info()
     Var.context = imblit.IMBlit(Config.resolution, Config.resizable, Config.fullscreen, title=f"Ruider - {Var.manga_name.title()}")
     
-    
     Var.context.scroll_speed = Config.scroll_speed
     Var.context.scroll_scale = Config.scroll_scale
 
@@ -216,7 +141,7 @@ def main():
                 Var.temporary_messages.remove((message, message_time))
         
 
-        if Var.context.framecount % (fps * 1) == 0: # Update history every 7 seconds
+        if Var.context.framecount % (fps * 1) == 0:
             # TODO: Find a way to see if user is actively reading or smth
             now = time.time()
             Var.time_spent += now - Var.last_checked_time
