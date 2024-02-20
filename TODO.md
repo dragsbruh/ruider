@@ -8,6 +8,7 @@
 - [ ] Add error handling
 - [ ] Add launcher
 - [ ] Add GUI Controls
+- [ ] Organize code and make it moduler (Doing)
 - [x] Better UI (update imblit?)
 - [x] Smooth scroll
 - [x] Even more customization
