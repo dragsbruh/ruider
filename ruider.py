@@ -10,103 +10,10 @@ import screeninfo
 
 from tkinter import filedialog
 
+from common import flash, Var, write_data, get_data, refresh_info
+from config import history_file, bookmark_filename, monitor, Config, load_config
+
 import manga
-
-# Constants
-datadir = os.path.join(os.path.dirname(__file__), "userdata")
-os.makedirs(datadir, exist_ok=True)
-
-bookmark_filename = os.path.join(datadir, "bookmarks.toml")
-config_file = os.path.join(datadir, "config.toml")
-history_file = os.path.join(datadir, "history.toml")
-
-monitor = screeninfo.get_monitors()[0]
-
-class Var:
-    manga_name: str
-    manga_path: str
-    page_index: int
-    chapter_index: int
-    chapters: list[manga.Chapter]
-    chapter_page_count: int
-    chapter_path: str
-    chapter_number: str
-    display_page: bool
-    temporary_messages: list[tuple[str, int]]
-
-    manga: manga.Manga
-    context: imblit.IMBlit
-
-    def setup():
-        bookmarks = get_data(bookmark_filename)
-        if len(sys.argv) > 1:
-            manga_name = sys.argv[-1]
-            if not os.path.exists(manga.Manga.get_path(manga_name)):
-                names = manga.get_names()
-                for name in names:
-                    if name.lower().startswith(manga_name.lower()):
-                        manga_name = name
-                        continue
-        else:
-            try:
-                manga_name = bookmarks["previously_reading"].title()
-            except KeyError:
-                manga_name = None
-        
-        found = False
-        for home in manga.MANGA_HOMES:
-            if manga_name == None:
-                continue
-            elif not os.path.exists(os.path.join(home, manga_name)):
-                continue
-            elif os.path.exists(os.path.join(home, manga_name)) and len(sys.argv) > 1:
-                bookmarks["previously_reading"] = manga_name
-                write_data(bookmarks, bookmark_filename)
-                found = True
-                break
-            else:
-                found = True
-                break
-        
-        if not found:
-            print(f"Usage: python ruider.py <manga-name>")
-            print(f"Please provide a valid manga name to read, or run with -l to list available mangas")
-            print(f"Either manga home does not exist or your manga ({manga_name}) wasnt found")
-            exit(1)
-
-        manga_name = manga_name.title()
-
-        Var.manga = manga.Manga(manga_name)    
-        Var.manga.get_chapters()
-        Var.display_page = True
-        Var.temporary_messages = []
-        Var.page_index = 0
-        Var.chapter_index = 0
-        
-
-class Config:
-    fullscreen: bool
-    resolution: pygame.Vector2 | tuple[int, int]
-    resizable: bool
-    
-    background: tuple[int, int, int]
-
-    scroll_speed: int
-    scroll_scale: float
-
-    flash_background: tuple[int, int, int]
-    flash_foreground: tuple[int, int, int]
-
-    rgb: bool
-
-    gui_background: tuple[int, int, int]
-    gui_foreground: tuple[int, int, int]
-    gui_shadow: tuple[int, int, int]
-
-
-class Svar:
-    time_spent: float = 0
-    last_checked_time: float = time.time()
 
 
 def dump_history():
@@ -123,20 +30,12 @@ def dump_history():
     else:
         history["mangas"] = {}
         already_spent = 0
-    history["mangas"][Var.manga.name.lower()] = already_spent + Svar.time_spent
-    history["overall"] = overall + Svar.time_spent
+    history["mangas"][Var.manga.name.lower()] = already_spent + Var.time_spent
+    history["overall"] = overall + Var.time_spent
     write_data(history, history_file)
-    Svar.time_spent = 0
+    Var.time_spent = 0
 
 # Refresh basic info like manga name, chapter number etc
-def refresh_info():
-    Var.manga_name = Var.manga.name
-    Var.chapters = Var.manga.chapters
-    if Var.chapter_index < len(Var.chapters):
-        Var.chapter_path = Var.chapters[Var.chapter_index].path
-        Var.chapter_page_count = Var.chapters[Var.chapter_index].get_page_count()
-    Var.manga_path = Var.manga.path
-    Var.chapter_number = manga.extract_number(os.path.splitext(os.path.basename(Var.chapter_path))[0])
 
 # Display the new page to imblit
 def display_page():
@@ -168,22 +67,8 @@ def refresh_page(call_display: bool=True):
     refresh_info()
 
 # Temporarily show gui message
-def flash(message: str):
-    Var.temporary_messages.append((message, time.time()))
 
 # Retrieve bookmarks from bookmark file
-def get_data(file: str):
-    if os.path.exists(file):
-        with open(file, 'r') as f:
-            data = toml.load(f)
-    else:
-        data = {}
-    return data
-
-# Write to bookmarks file
-def write_data(data: dict[str, any], file: str):
-    with open(file, 'w') as f:
-        toml.dump(data, f)
 
 # Bookmark current page
 def bookmark_page():
@@ -224,32 +109,6 @@ def fix_missing():
     write_data(history, history_file)
 
 # Configuration
-def load_config():
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as f:
-            config = toml.load(f)
-    else:
-        print("Config file not found!")
-        config = {
-            "manga_homes": []
-        }
-
-    manga.MANGA_HOMES = config["manga_homes"]
-    # Config.item = config["item"] if "item" in config else default
-    Config.resolution = config["resolution"] if "resolution" in config else pygame.Vector2(monitor.width, monitor.height)
-    Config.resizable = config["resizable"] if "resizable" in config else False
-    Config.fullscreen = config["fullscreen"] if "fullscreen" in config else False
-    Config.scroll_speed = config["scroll_speed"] if "scroll_speed" in config else 4
-    Config.scroll_scale = config["scroll_scale"] if "scroll_scale" in config else 1.35
-    Config.background = config["background"] if "background" in config else None
-    Config.gui_background = config["gui_background"] if "gui_background" in config else None
-    Config.gui_foreground = config["gui_foreground"] if "gui_foreground" in config else None
-    Config.gui_shadow = config["gui_shadow"] if "gui_shadow" in config else None
-    Config.flash_background = config["flash_background"] if "flash_background" in config else None
-    Config.flash_foreground = config["flash_foreground"] if "flash_foreground" in config else None
-    Config.rgb = config["rgb"] if "rgb" in config else True
-
-    imblit.config = Config
 
 def keypress(key):
     refresh_info()
@@ -360,8 +219,8 @@ def main():
         if Var.context.framecount % (fps * 1) == 0: # Update history every 7 seconds
             # TODO: Find a way to see if user is actively reading or smth
             now = time.time()
-            Svar.time_spent += now - Svar.last_checked_time
-            Svar.last_checked_time = now
+            Var.time_spent += now - Var.last_checked_time
+            Var.last_checked_time = now
             dump_history()
 
         Var.context.update(fps)
