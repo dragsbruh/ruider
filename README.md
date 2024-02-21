@@ -1,5 +1,11 @@
 # Ruider
 
+<img src="assets/icon.jpg" alt="Icon Image" style="border-radius: 10%; width: 100px; height: 100px;">
+
+![version](https://img.shields.io/badge/version-too%20lazy%20to%20keep%20track%20of-gray?labelColor=blue&style=for-the-badge)
+![sacred manga support](https://img.shields.io/badge/sacred%20manga%20support-yes-gray?labelColor=orange&style=for-the-badge)
+![free](https://img.shields.io/badge/free-absolutely-gray?labelColor=green&style=for-the-badge)
+
 > I honestly have no idea why i named it ruider
 
 ## About
@@ -146,4 +152,4 @@ $ ruider -l
 $ 
 ```
 
-**NOTE:** This command lists all mangas from all manga homes in order it interprets it. So, when type the starting characters of the manga name and it autocompletes to the first match. You can lookup this to see if it autocompletes to the intended manga.
+**NOTE:** This command lists all mangas from all manga homes in order it interprets it. So, when you type the starting characters of the manga name, it autocompletes to the first match. You can lookup the output of this command to see if it autocompletes to the intended manga.
