@@ -1,6 +1,6 @@
 # Ruider
 
-<img src="assets/icon.jpg" alt="Icon Image" style="border-radius: 10%; width: 100px; height: 100px;">
+<img src="assets/icon.png" alt="Icon Image" style="border-radius: 10%; width: 100px; height: 100px;">
 
 ![version](https://img.shields.io/badge/version-too%20lazy%20to%20keep%20track%20of-gray?labelColor=blue&style=for-the-badge)
 ![sacred manga support](https://img.shields.io/badge/sacred%20manga%20support-yes-gray?labelColor=orange&style=for-the-badge)
@@ -12,7 +12,7 @@
 
 A very humble manga reader that focuses on reading pre-downloaded mangas with a simple minimal and the "pro" (lies) style keybindings for the casual manga reading experience.
 
-**NOTE:** Ruider is a very simple manga reader that does not download any copyrighted content. The only external assets used are the app icon and font file (icon from "The Gods Lie" manga and "Jetbrains Mono" font from Jetbrains).
+**NOTE:** Ruider is a very simple manga reader that does not download any copyrighted content. The only external asset used is the font file ("Jetbrains Mono" font from Jetbrains).
 
 **NOTE:** Ruider sets some standards regarding how you store manga files, but they will be easy to follow.
 
