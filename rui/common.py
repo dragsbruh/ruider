@@ -3,10 +3,10 @@ import sys
 import toml
 import time
 
-import manga
-import imblit
+import rui.manga as manga
+import rui.imblit as imblit
 
-from config import bookmark_file
+from rui.config import bookmark_file
 
 class Var:
     manga_name: str

@@ -1,6 +1,6 @@
 from tkinter import filedialog
 
-from common import Var, flash
+from .common import Var, flash
 
 def save_page():
     f = filedialog.asksaveasfile("wb", filetypes=[('PNG Image', '.png')], defaultextension='.png')

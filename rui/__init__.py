@@ -1,15 +1,13 @@
 import sys
 import time
-import imblit
 import pygame
 
-from common import Var,refresh_info
-from reader import display_page, next_chapter, next_page, previous_chapter, previous_page, refresh_page, skip_back_pages, skip_pages, toggle_showing
-from tracking import clear_previously_reading, load_bookmark, print_stats, save_bookmark, fix_missing, update_history
-from config import monitor, Config, load_config
-from features import save_page
-
-import manga
+from . import imblit, manga
+from .common import Var,refresh_info
+from .reader import display_page, next_chapter, next_page, previous_chapter, previous_page, refresh_page, skip_back_pages, skip_pages, toggle_showing
+from .tracking import clear_previously_reading, load_bookmark, print_stats, save_bookmark, fix_missing, update_history
+from .config import monitor, Config, load_config
+from .features import save_page
 
 def mousebuttondown(button):
     if button == 1:
@@ -25,7 +23,7 @@ def toggle_fullscreen():
     Var.context.toggle_fullscreen((monitor.width, monitor.height))
     refresh_page(Var.display_page)
 
-def main():
+def application():
     load_config()
     Var.setup()
 
@@ -69,14 +67,13 @@ def main():
             Var.context.add_alert(message)
             if current_time - message_time > 3.5:
                 Var.temporary_messages.remove((message, message_time))
-        
 
         if Var.context.framecount % (fps * 1) == 0:
             update_history()
 
         Var.context.update(fps)
 
-if __name__ == "__main__":
+def main():
     load_config()
 
     list_mangas = "-l" in sys.argv or "--list" in sys.argv
@@ -99,4 +96,4 @@ if __name__ == "__main__":
     elif fix:
         fix_missing()
         exit(0)
-    main()
+    application()

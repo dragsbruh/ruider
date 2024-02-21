@@ -1,0 +1,3 @@
+import rui
+
+rui.main()

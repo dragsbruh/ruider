@@ -1,9 +1,9 @@
-import manga
+import rui.manga as manga
 import math
 import time
 
-from common import Var, write_data, get_data, flash, refresh_info
-from config import history_file, bookmark_file
+from .common import Var, write_data, get_data, flash, refresh_info
+from .config import history_file, bookmark_file
 
 def dump_history():
     history = get_data(history_file)

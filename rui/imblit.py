@@ -1,10 +1,12 @@
 # Just a simple personal module that just blits images with ui so that i can properly focus on features instead of gui bs
 # Not the greatest but works
 
+# Not personal anymore, integrated into rui. might make it separate in futures
+
 import os
 import sys
 
-from config import Config
+from .config import Config, assets_path
 
 # Weaklings have standards
 sys.stdout = None
@@ -13,7 +15,6 @@ pygame.init()
 pygame.font.init()
 sys.stdout = sys.__stdout__
 
-assets_path = os.path.join(os.path.dirname(__file__), "assets")
 
 def invert_color(color: tuple[int, int, int]):
     r, g, b = color
@@ -325,5 +326,4 @@ class IMBlit:
         self.show_gui = not self.show_gui
     
     def bind_key(self, key: int, function):
-        print("bound", key, "to", function.__name__)
         self.binded_keys[key] = function

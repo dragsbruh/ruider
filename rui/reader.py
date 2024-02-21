@@ -1,7 +1,7 @@
 import io
 import pygame
 
-from common import Var, refresh_info, flash
+from .common import Var, refresh_info, flash
 
 def display_page():
     image_bytes = Var.chapters[Var.chapter_index].get_page(Var.page_index)

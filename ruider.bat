@@ -1,6 +1,8 @@
+@REM TODO: Update this so much
+
 @echo off
 SETLOCAL
-SET SCRIPT=%~dp0\ruider.py
+SET SCRIPT=%~dp0\launcher.py
 
 if "%*" == "" (
     goto invisibleoutput

@@ -3,8 +3,13 @@ import toml
 import pygame
 import screeninfo
 
-import manga
-datadir = os.path.join(os.path.dirname(__file__), "userdata")
+from . import manga
+
+path = os.path.dirname(os.path.dirname(__file__))
+
+datadir = os.path.join(path, "userdata") # HACK
+assets_path = os.path.join(path, "assets")
+
 os.makedirs(datadir, exist_ok=True)
 
 bookmark_file = os.path.join(datadir, "bookmarks.toml")
