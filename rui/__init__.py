@@ -1,6 +1,11 @@
 import sys
 import time
+
+sys.stdout = None
 import pygame
+pygame.init()
+pygame.font.init()
+sys.stdout = sys.__stdout__
 
 from . import imblit, manga
 from .common import Var,refresh_info
