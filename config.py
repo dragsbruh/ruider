@@ -7,7 +7,7 @@ import manga
 datadir = os.path.join(os.path.dirname(__file__), "userdata")
 os.makedirs(datadir, exist_ok=True)
 
-bookmark_filename = os.path.join(datadir, "bookmarks.toml")
+bookmark_file = os.path.join(datadir, "bookmarks.toml")
 config_file = os.path.join(datadir, "config.toml")
 history_file = os.path.join(datadir, "history.toml")
 

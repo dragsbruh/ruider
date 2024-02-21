@@ -6,7 +6,7 @@ import time
 import manga
 import imblit
 
-from config import bookmark_filename
+from config import bookmark_file
 
 class Var:
     manga_name: str
@@ -27,7 +27,7 @@ class Var:
     last_checked_time: float = time.time()
 
     def setup():
-        bookmarks = get_data(bookmark_filename)
+        bookmarks = get_data(bookmark_file)
         if len(sys.argv) > 1:
             manga_name = sys.argv[-1]
             if not os.path.exists(manga.Manga.get_path(manga_name)):
@@ -50,7 +50,7 @@ class Var:
                 continue
             elif os.path.exists(os.path.join(home, manga_name)) and len(sys.argv) > 1:
                 bookmarks["previously_reading"] = manga_name
-                write_data(bookmarks, bookmark_filename)
+                write_data(bookmarks, bookmark_file)
                 found = True
                 break
             else:
@@ -73,6 +73,7 @@ class Var:
         Var.chapter_index = 0
 
 def refresh_info():
+    # Make sure this function runs fast, it is called a hell lot of time
     Var.manga_name = Var.manga.name
     Var.chapters = Var.manga.chapters
     if Var.chapter_index < len(Var.chapters):

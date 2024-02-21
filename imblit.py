@@ -214,6 +214,9 @@ class IMBlit:
         self._mouse_button_up_cb = fun
 
     def center_image(self, x_axis: bool=True, y_axis: bool=True, scale: bool=True):
+        if self.image_surface == None:
+            return
+        
         self.size = pygame.Vector2(self.display.get_size())
         width = self.image_surface.get_width()
         height = self.image_surface.get_height()
@@ -311,4 +314,7 @@ class IMBlit:
         self.alerts.append(message)
         if demo.get_width() > self.gui_alert_width:
             self.gui_alert_width = demo.get_width()
-        
+    
+    def toggle_gui(self):
+        self.show_gui = not self.show_gui
+    

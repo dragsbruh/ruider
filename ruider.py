@@ -1,45 +1,34 @@
-import io
-import math
 import sys
 import time
 import imblit
 import pygame
 
-from tkinter import filedialog
-
-from common import flash, Var, write_data, get_data, refresh_info
-from tracking import load_bookmark, bookmark_page, dump_history, fix_missing
-from config import history_file, bookmark_filename, monitor, Config, load_config
+from common import flash, Var,refresh_info
+from reader import display_page, ending, last_page, next_chapter, next_page, previous_chapter, previous_page, skip_back_pages, skip_pages, starting
+from tracking import clear_previously_reading, load_bookmark, print_stats, save_bookmark, fix_missing, update_history
+from config import monitor, Config, load_config
+from features import save_page
 
 import manga
 
-def display_page():
-    fp = io.BytesIO(Var.chapters[Var.chapter_index].get_page(Var.page_index))
-    surf = pygame.image.load(fp)
-    Var.context.display_image(surf)
-    fp.close()
-
 def refresh_page(call_display: bool=True):
     if Var.page_index > Var.chapter_page_count - 1:
-        Var.chapter_index += 1
-        Var.page_index = 0
+        next_chapter()
     elif Var.page_index < 0:
-        Var.chapter_index -= 1
-        Var.page_index = Var.chapters[Var.chapter_index].get_page_count() - 1
-     
+        previous_chapter()
+        last_page()
     if Var.chapter_index >= len(Var.chapters):
         flash("You are at the last chapter")
-        Var.chapter_index = len(Var.chapters) - 1
-        Var.page_index = Var.chapter_page_count - 1
+        ending()
     elif Var.chapter_index < 0:
         flash("You are at the first chapter")
-        Var.chapter_index = 0
-        Var.page_index = 0
+        starting()
     if call_display:
         display_page()
     refresh_info()
 
 def keypress(key):
+    # TODO: Bind the keys directly to imblit
     refresh_info()
 
     if key == pygame.K_r:
@@ -50,7 +39,7 @@ def keypress(key):
             refresh_page(Var.display_page)
         return
     elif key == pygame.K_u:
-        Var.context.show_gui = not Var.context.show_gui
+        Var.context.toggle_gui()
         return
     elif key == pygame.K_F11:
         Var.context.toggle_fullscreen((monitor.width, monitor.height))
@@ -58,46 +47,31 @@ def keypress(key):
         return
 
     if key == pygame.K_s:
-        f = filedialog.asksaveasfile("wb", filetypes=[('PNG Image', '.png')], defaultextension='.png')
-        if f == None:
-            flash("Save cancelled")
-            return
-        page_bytes = Var.chapters[Var.chapter_index].get_page(Var.page_index, format="PNG")
-        f.write(page_bytes)
-        f.close()
-        flash(f"Saved to {f.name}")
+        save_page()
         return
     
     if key == pygame.K_PLUS or key == pygame.K_EQUALS: # TODO: Fixme
-        Var.page_index += 5
-        if Var.page_index >= Var.chapter_page_count: Var.page_index = Var.chapter_page_count - 1
+        skip_pages()
     elif key == pygame.K_MINUS:
-        Var.page_index -= 5
-        if Var.page_index < 0: Var.page_index = 0
-    elif key == pygame.K_LEFT:
-        Var.page_index -= 1
+        skip_back_pages()
     elif key == pygame.K_RIGHT:
-        Var.page_index += 1
+        next_page()
+    elif key == pygame.K_LEFT:
+        previous_page()
     elif key == pygame.K_KP_PLUS:
-        Var.chapter_index += 1
-        Var.page_index = 0
+        next_chapter()
     elif key == pygame.K_KP_MINUS:
-        Var.chapter_index -= 1
-        Var.page_index = 0
+        previous_chapter()
     elif key == pygame.K_b:
-        bookmark_page()
+        save_bookmark()
         return
     elif key == pygame.K_j:
         load_bookmark()
     else:
         return
     
-    refresh_info()    
+    refresh_info()
     refresh_page(Var.display_page)
-
-def windowresized():
-    if Var.context.image_surface:
-        Var.context.center_image()
 
 def mousebuttondown(button):
     if button == 1:
@@ -121,7 +95,7 @@ def main():
 
     display_page()
 
-    Var.context.onwindowresize(windowresized)
+    Var.context.onwindowresize(Var.context.center_image)
     Var.context.onkeypress(keypress)
     Var.context.onmousebuttondown(mousebuttondown)
 
@@ -142,11 +116,7 @@ def main():
         
 
         if Var.context.framecount % (fps * 1) == 0:
-            # TODO: Find a way to see if user is actively reading or smth
-            now = time.time()
-            Var.time_spent += now - Var.last_checked_time
-            Var.last_checked_time = now
-            dump_history()
+            update_history()
 
         Var.context.update(fps)
 
@@ -165,21 +135,10 @@ if __name__ == "__main__":
             print(f"[{n+1}]: {mg.name} - {mg.get_chapter_count()} chapter(s)")
         exit(0)
     elif show_stats:
-        history = get_data(history_file)
-        overall = history["overall"] if "overall" in history else 0
-        print(f"You spent exactly {math.floor(overall)} seconds using ruider to read manga.")
-        print(f"\tThat is, {math.floor(overall/60)} minutes")
-        print(f"\tOr {math.floor(overall/3600)} hours")
-        print()
-        mangas = history["mangas"] if "mangas" in history else {}
-        for mg in mangas.keys():
-            print(f"You spent {math.floor(mangas[mg])} seconds ({math.floor(mangas[mg]/3600)} hours {math.ceil((mangas[mg]/60)%60)} minute(s)) reading \"{mg.title()}\"")
+        print_stats()
         exit(0)
     elif clear:
-        bookmarks = get_data(bookmark_filename)
-        try: del bookmarks["previously_reading"]
-        except KeyError: pass
-        write_data(bookmarks, bookmark_filename)
+        clear_previously_reading()
         exit(0)
     elif fix:
         fix_missing()
