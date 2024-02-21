@@ -3,75 +3,13 @@ import time
 import imblit
 import pygame
 
-from common import flash, Var,refresh_info
-from reader import display_page, ending, last_page, next_chapter, next_page, previous_chapter, previous_page, skip_back_pages, skip_pages, starting
+from common import Var,refresh_info
+from reader import display_page, next_chapter, next_page, previous_chapter, previous_page, refresh_page, skip_back_pages, skip_pages, toggle_showing
 from tracking import clear_previously_reading, load_bookmark, print_stats, save_bookmark, fix_missing, update_history
 from config import monitor, Config, load_config
 from features import save_page
 
 import manga
-
-def refresh_page(call_display: bool=True):
-    if Var.page_index > Var.chapter_page_count - 1:
-        next_chapter()
-    elif Var.page_index < 0:
-        previous_chapter()
-        last_page()
-    if Var.chapter_index >= len(Var.chapters):
-        flash("You are at the last chapter")
-        ending()
-    elif Var.chapter_index < 0:
-        flash("You are at the first chapter")
-        starting()
-    if call_display:
-        display_page()
-    refresh_info()
-
-def keypress(key):
-    # TODO: Bind the keys directly to imblit
-    refresh_info()
-
-    if key == pygame.K_r:
-        Var.display_page = not Var.display_page
-        if Var.context.image_surface != None:
-            Var.context.image_surface = None
-        else:
-            refresh_page(Var.display_page)
-        return
-    elif key == pygame.K_u:
-        Var.context.toggle_gui()
-        return
-    elif key == pygame.K_F11:
-        Var.context.toggle_fullscreen((monitor.width, monitor.height))
-        refresh_page(Var.display_page)
-        return
-
-    if key == pygame.K_s:
-        save_page()
-        return
-    
-    if key == pygame.K_PLUS or key == pygame.K_EQUALS: # TODO: Fixme
-        skip_pages()
-    elif key == pygame.K_MINUS:
-        skip_back_pages()
-    elif key == pygame.K_RIGHT:
-        next_page()
-    elif key == pygame.K_LEFT:
-        previous_page()
-    elif key == pygame.K_KP_PLUS:
-        next_chapter()
-    elif key == pygame.K_KP_MINUS:
-        previous_chapter()
-    elif key == pygame.K_b:
-        save_bookmark()
-        return
-    elif key == pygame.K_j:
-        load_bookmark()
-    else:
-        return
-    
-    refresh_info()
-    refresh_page(Var.display_page)
 
 def mousebuttondown(button):
     if button == 1:
@@ -81,6 +19,10 @@ def mousebuttondown(button):
     else:
         return # Very important
     refresh_info()
+    refresh_page(Var.display_page)
+
+def toggle_fullscreen():
+    Var.context.toggle_fullscreen((monitor.width, monitor.height))
     refresh_page(Var.display_page)
 
 def main():
@@ -96,8 +38,22 @@ def main():
     display_page()
 
     Var.context.onwindowresize(Var.context.center_image)
-    Var.context.onkeypress(keypress)
     Var.context.onmousebuttondown(mousebuttondown)
+
+    Var.context.bind_key(pygame.K_s, save_page)
+    Var.context.bind_key(pygame.K_r, toggle_showing)
+    Var.context.bind_key(pygame.K_u, Var.context.toggle_gui)
+    Var.context.bind_key(pygame.K_F11, toggle_fullscreen)
+
+    Var.context.bind_key(pygame.K_PLUS, skip_pages) # Just in case
+    Var.context.bind_key(pygame.K_EQUALS, skip_pages)
+    Var.context.bind_key(pygame.K_MINUS, skip_back_pages)
+    Var.context.bind_key(pygame.K_RIGHT, next_page)
+    Var.context.bind_key(pygame.K_LEFT, previous_page)
+    Var.context.bind_key(pygame.K_KP_PLUS, next_chapter)
+    Var.context.bind_key(pygame.K_KP_MINUS, previous_chapter)
+    Var.context.bind_key(pygame.K_b, save_bookmark)
+    Var.context.bind_key(pygame.K_j, load_bookmark)
 
     fps = 60
     

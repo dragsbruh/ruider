@@ -57,6 +57,8 @@ class IMBlit:
 
     framecount: int
 
+    binded_keys: dict[int, any]
+
     def __init__(self, resolution: pygame.Vector2, resizable: bool=True, fullscreen: bool=False, background_color: tuple[int, int, int]=(0, 0, 0), title: str="IMBlit window"):
         if fullscreen:
             self.display = pygame.display.set_mode(resolution, pygame.FULLSCREEN)
@@ -106,6 +108,8 @@ class IMBlit:
         self.scroll_scale = 1.5
         self.scroll = pygame.Vector2(0, 0)
 
+        self.binded_keys = {}
+
     def update(self, tick: int | None=None):
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
@@ -113,6 +117,8 @@ class IMBlit:
             elif e.type == pygame.KEYDOWN:
                 if self._key_press_cb:
                     self._key_press_cb(e.key)
+                if e.key in self.binded_keys:
+                    self.binded_keys[e.key]()
             elif e.type == pygame.WINDOWRESIZED:
                 if self._window_resize_cb:
                     self._window_resize_cb()
@@ -318,3 +324,6 @@ class IMBlit:
     def toggle_gui(self):
         self.show_gui = not self.show_gui
     
+    def bind_key(self, key: int, function):
+        print("bound", key, "to", function.__name__)
+        self.binded_keys[key] = function
